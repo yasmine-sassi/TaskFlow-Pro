@@ -1,14 +1,18 @@
 import 'package:dio/dio.dart';
 
 class AuthInterceptor extends Interceptor {
-  // TODO: inject token provider
+  final Future<String?> Function() tokenProvider;
+  AuthInterceptor(this.tokenProvider);
+
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Example: add auth token if available
-    // final token = await tokenProvider.getToken();
-    // if (token != null) {
-    //   options.headers['Authorization'] = 'Bearer $token';
-    // }
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final token = await tokenProvider();
+    if (token?.isNotEmpty == true) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
     super.onRequest(options, handler);
   }
 }

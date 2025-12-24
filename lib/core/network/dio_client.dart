@@ -8,10 +8,10 @@ import '../constants/api_endpoints.dart';
 class DioClient {
   late final Dio dio;
 
-  DioClient() {
+  DioClient({String? baseUrl, Future<String?> Function()? tokenProvider}) {
     dio = Dio(
       BaseOptions(
-        baseUrl: ApiEndpoints.baseUrl,
+        baseUrl: baseUrl ?? ApiEndpoints.baseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 15),
         headers: {'Content-Type': 'application/json'},
@@ -19,7 +19,7 @@ class DioClient {
     );
 
     dio.interceptors.addAll([
-      AuthInterceptor(),
+      AuthInterceptor(tokenProvider ?? () async => null),
       ErrorInterceptor(),
       LoggingInterceptor(),
       RetryInterceptor(dio: dio),
