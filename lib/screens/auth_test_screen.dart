@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:taskflow_pro/core/di/service_locator.dart';
-import 'package:taskflow_pro/core/network/dio_client.dart';
-import 'package:taskflow_pro/domain/repositories/auth_repository.dart';
+import '../service_locator.dart';
+import '../utils/dio_client.dart';
+import '../services/auth_service.dart';
 
 class AuthTestScreen extends StatefulWidget {
   const AuthTestScreen({super.key});
@@ -21,7 +21,7 @@ class _AuthTestScreenState extends State<AuthTestScreen> {
   String? _token;
   bool _loading = false;
 
-  AuthRepository get _repo => GetIt.I<AuthRepository>();
+  AuthService get _authService => GetIt.I<AuthService>();
 
   Future<void> _login() async {
     setState(() => _loading = true);
@@ -29,19 +29,19 @@ class _AuthTestScreenState extends State<AuthTestScreen> {
       _setOutput('Please enter email and password.');
       return;
     }
-    final res = await _repo.login(
-      email: _emailCtrl.text.trim(),
-      password: _passwordCtrl.text,
-    );
-    res.fold((failure) => _setOutput('Login failed: ${failure.message}'), (
-      session,
-    ) {
+    try {
+      final session = await _authService.login(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
       _token = session.accessToken;
       setAccessToken(_token);
       _setOutput(
         'Login OK\nToken: ${session.accessToken}\nUser: ${session.user.fullName} (${session.user.email})\nRole: ${session.user.role}',
       );
-    });
+    } catch (e) {
+      _setOutput('Login failed: $e');
+    }
   }
 
   Future<void> _register() async {
@@ -53,38 +53,35 @@ class _AuthTestScreenState extends State<AuthTestScreen> {
       _setOutput('Please fill email, password, first name and last name.');
       return;
     }
-    final res = await _repo.register(
-      email: _emailCtrl.text.trim(),
-      password: _passwordCtrl.text,
-      firstName: _firstNameCtrl.text.trim(),
-      lastName: _lastNameCtrl.text.trim(),
-    );
-    res.fold((failure) => _setOutput('Register failed: ${failure.message}'), (
-      session,
-    ) {
+    try {
+      final session = await _authService.register(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+        firstName: _firstNameCtrl.text.trim(),
+        lastName: _lastNameCtrl.text.trim(),
+      );
       _token = session.accessToken;
       setAccessToken(_token);
       _setOutput(
         'Register OK\nToken: ${session.accessToken}\nUser: ${session.user.fullName} (${session.user.email})',
       );
-    });
+    } catch (e) {
+      _setOutput('Register failed: $e');
+    }
   }
 
   Future<void> _me() async {
     setState(() => _loading = true);
-    final token = _token;
-    if (token == null) {
+    if (_token == null) {
       _setOutput('No token. Please login first.');
       return;
     }
-    final res = await _repo.currentUser(accessToken: token);
-    res.fold((failure) => _setOutput('Me failed: ${failure.message}'), (
-      session,
-    ) {
-      _setOutput(
-        'Me OK\nUser: ${session.user.fullName} (${session.user.email})',
-      );
-    });
+    try {
+      final user = await _authService.me();
+      _setOutput('Me OK\nUser: ${user.fullName} (${user.email})');
+    } catch (e) {
+      _setOutput('Me failed: $e');
+    }
   }
 
   Future<void> _fetchProjects() async {

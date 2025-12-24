@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 
 class AuthInterceptor extends Interceptor {
   final Future<String?> Function() tokenProvider;
-  AuthInterceptor(this.tokenProvider);
+
+  AuthInterceptor({required this.tokenProvider});
 
   @override
   void onRequest(
@@ -10,7 +11,7 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     final token = await tokenProvider();
-    if (token?.isNotEmpty == true) {
+    if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     super.onRequest(options, handler);

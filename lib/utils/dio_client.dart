@@ -1,9 +1,6 @@
 import 'package:dio/dio.dart';
-import 'interceptors/auth_interceptor.dart';
-import 'interceptors/error_interceptor.dart';
-import 'interceptors/logging_interceptor.dart';
-import 'interceptors/retry_interceptor.dart';
-import '../constants/api_endpoints.dart';
+import 'auth_interceptor.dart';
+import 'api_endpoints.dart';
 
 class DioClient {
   late final Dio dio;
@@ -19,10 +16,7 @@ class DioClient {
     );
 
     dio.interceptors.addAll([
-      AuthInterceptor(tokenProvider ?? () async => null),
-      ErrorInterceptor(),
-      LoggingInterceptor(),
-      RetryInterceptor(dio: dio),
+      AuthInterceptor(tokenProvider: tokenProvider ?? () async => null),
     ]);
   }
 }
