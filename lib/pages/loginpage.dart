@@ -5,7 +5,6 @@ import 'dart:convert';
 import '../core/network/api_client.dart';
 import 'admindashboard.dart';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -17,15 +16,15 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _showPassword = false;
   bool _isLoading = false;
   String? _emailError;
   String? _passwordError;
   String? _errorMessage;
 
-  // Your API base URL
-  static const String baseUrl = 'http://192.168.1.27:3000';
+  // Your API base URL - Use 10.0.2.2 for Android emulator
+  static const String baseUrl = 'http://10.0.2.2:3000';
 
   @override
   void dispose() {
@@ -81,8 +80,8 @@ class _LoginPageState extends State<LoginPage> {
       );
       print(_emailController.text.trim());
       print(_passwordController.text);
-    
-      print (response.body);
+
+      print(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
@@ -100,7 +99,6 @@ class _LoginPageState extends State<LoginPage> {
           accessToken: accessToken,
         );
 
-        
         try {
           final user = await apiClient.getMe();
           print('Logged in as: ${user}');
@@ -108,7 +106,6 @@ class _LoginPageState extends State<LoginPage> {
           print('Failed to get user: $e');
         }
 
-      
         // 3. Navigate to Dashboard
         if (mounted) {
           Navigator.pushReplacement(
@@ -116,7 +113,8 @@ class _LoginPageState extends State<LoginPage> {
             MaterialPageRoute(builder: (context) => const AdminDashboard()),
           );
         }
-    }} catch (e) {
+      }
+    } catch (e) {
       setState(() {
         _errorMessage = 'Network error. Please check your connection.';
       });
@@ -161,9 +159,10 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(width: 8),
                       Text(
                         'TaskFlow Pro',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                     ],
                   ),
@@ -183,17 +182,23 @@ class _LoginPageState extends State<LoginPage> {
                           // Header
                           Text(
                             'Welcome back',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Sign in to your account to continue',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
@@ -210,7 +215,8 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.error_outline, color: Colors.red[700], size: 20),
+                                  Icon(Icons.error_outline,
+                                      color: Colors.red[700], size: 20),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -234,9 +240,12 @@ class _LoginPageState extends State<LoginPage> {
                                 // Email Field
                                 Text(
                                   'Email',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                 ),
                                 const SizedBox(height: 8),
                                 TextField(
@@ -251,7 +260,8 @@ class _LoginPageState extends State<LoginPage> {
                                     errorText: _emailError,
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(color: Colors.red),
+                                      borderSide:
+                                          const BorderSide(color: Colors.red),
                                     ),
                                   ),
                                 ),
@@ -260,9 +270,12 @@ class _LoginPageState extends State<LoginPage> {
                                 // Password Field
                                 Text(
                                   'Password',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                 ),
                                 const SizedBox(height: 8),
                                 TextField(
@@ -277,7 +290,8 @@ class _LoginPageState extends State<LoginPage> {
                                     errorText: _passwordError,
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(color: Colors.red),
+                                      borderSide:
+                                          const BorderSide(color: Colors.red),
                                     ),
                                     suffixIcon: IconButton(
                                       icon: Icon(
@@ -301,7 +315,8 @@ class _LoginPageState extends State<LoginPage> {
                                   width: double.infinity,
                                   height: 48,
                                   child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _handleSubmit,
+                                    onPressed:
+                                        _isLoading ? null : _handleSubmit,
                                     style: ElevatedButton.styleFrom(
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
@@ -309,14 +324,18 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     child: _isLoading
                                         ? const Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               SizedBox(
                                                 width: 20,
                                                 height: 20,
-                                                child: CircularProgressIndicator(
+                                                child:
+                                                    CircularProgressIndicator(
                                                   strokeWidth: 2,
-                                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(
                                                     Colors.white,
                                                   ),
                                                 ),
@@ -345,10 +364,13 @@ class _LoginPageState extends State<LoginPage> {
                               children: [
                                 Text(
                                   'Demo Credentials',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[700],
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
+                                      ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
@@ -478,7 +500,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final token = await TokenManager.getToken();
     if (token != null) {
       _apiClient = AuthApiClientFactory.createAuthenticated(
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'http://10.0.2.2:3000',
         accessToken: token,
       );
       
