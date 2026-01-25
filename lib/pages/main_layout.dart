@@ -501,7 +501,6 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
               ),
             ),
             const SizedBox(width: 24),
-            // Search Field
             Expanded(
               child: TextField(
                 controller: _searchController,
@@ -552,6 +551,54 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex == 0
+            ? 0
+            : _selectedIndex == 2
+                ? 1
+                : _selectedIndex == 1
+                    ? 2
+                    : 3,
+        onTap: (navIndex) {
+          setState(() {
+            // Order: Dashboard(0), Projects(2), Tasks(1), Profile(3)
+            switch (navIndex) {
+              case 0:
+                _selectedIndex = 0;
+                break;
+              case 1:
+                _selectedIndex = 2;
+                break;
+              case 2:
+                _selectedIndex = 1;
+                break;
+              case 3:
+                _selectedIndex = 3;
+                break;
+            }
+            _showSearchResults = false;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder_open_outlined),
+            label: 'Projects',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.checklist_rtl),
+            label: 'Tasks',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
       ),
       drawer: Drawer(
         child: Sidebar(

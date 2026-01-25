@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../core/network/api_client.dart';
 import '../data/models/user.dart';
 import 'main_layout.dart';
+import 'settings_page.dart';
 import 'projects.dart';
 import 'tasks.dart';
 
 class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  const AdminDashboard({super.key});
 
   @override
   State<AdminDashboard> createState() => _AdminDashboardState();
@@ -14,11 +15,12 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   List<User> users = [];
-  final apiClient = AuthApiClientFactory.instance!;
+  late final AuthApiClient apiClient;
 
   @override
   void initState() {
     super.initState();
+    apiClient = AuthApiClientFactory.instance!;
     loadusers();
   }
 
@@ -115,7 +117,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -156,9 +158,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       ),
       tasksContent: const TasksPage(),
       projectsContent: const ProjectsPage(),
-      profileContent: const Center(
-        child: Text('Profile page coming soon'),
-      ),
+      profileContent: const SettingsPage(initialTab: 0),
     );
   }
 }
@@ -185,7 +185,7 @@ class _StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -196,7 +196,7 @@ class _StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: iconColor, size: 20),
@@ -241,7 +241,7 @@ class _UserListItem extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
         child: Text(
           user.firstName[0],
           style: TextStyle(

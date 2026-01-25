@@ -25,12 +25,15 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = [
+    final mainItems = [
       SidebarItem(label: 'Dashboard', icon: Icons.dashboard_outlined, index: 0),
       SidebarItem(label: 'Tasks', icon: Icons.checklist_rtl, index: 1),
       SidebarItem(
           label: 'Projects', icon: Icons.folder_open_outlined, index: 2),
-      SidebarItem(label: 'Profile', icon: Icons.person_outline, index: 3),
+    ];
+
+    final bottomItems = [
+      SidebarItem(label: 'Settings', icon: Icons.settings_outlined, index: 3),
     ];
 
     return Container(
@@ -39,7 +42,7 @@ class Sidebar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(2, 0),
           ),
@@ -57,7 +60,8 @@ class Sidebar extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -86,11 +90,21 @@ class Sidebar extends StatelessWidget {
             ),
           ),
           const Divider(),
-          // Navigation Items
+          // Main Navigation Items
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              children: items
+              children: mainItems
+                  .map((item) => _buildSidebarItem(context, item))
+                  .toList(),
+            ),
+          ),
+          // Bottom Navigation Items (Settings)
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              children: bottomItems
                   .map((item) => _buildSidebarItem(context, item))
                   .toList(),
             ),
@@ -110,7 +124,7 @@ class Sidebar extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -143,7 +157,7 @@ class Sidebar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).primaryColor.withOpacity(0.1)
+              ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: isSelected

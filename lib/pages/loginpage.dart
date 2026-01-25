@@ -94,19 +94,13 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString('user_data', json.encode(userData));
         print("saved shared");
 
-        final apiClient = AuthApiClientFactory.createAuthenticated(
+        // 3. Create authenticated API client
+        AuthApiClientFactory.createAuthenticated(
           baseUrl: baseUrl,
           accessToken: accessToken,
         );
 
-        try {
-          final user = await apiClient.getMe();
-          print('Logged in as: ${user}');
-        } catch (e) {
-          print('Failed to get user: $e');
-        }
-
-        // 3. Navigate to Dashboard
+        // 4. Navigate to main app dashboard
         if (mounted) {
           Navigator.pushReplacement(
             context,

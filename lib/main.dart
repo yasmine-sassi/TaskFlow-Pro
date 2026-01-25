@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'presentation/providers/app_providers.dart';
+import 'presentation/providers/settings_provider.dart';
+import 'core/theme/app_theme.dart';
 import 'pages/loginpage.dart';
 
 void main() {
@@ -12,12 +13,14 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = ref.watch(themeModeProvider);
+    final settings = ref.watch(settingsProvider);
+
     return MaterialApp(
       title: 'TaskFlow Pro',
-      theme: ThemeData(useMaterial3: true, brightness: Brightness.light),
-      darkTheme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
-      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme(),
+      darkTheme: AppTheme.darkTheme(),
+      themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
       home: const LoginPage(),
     );
   }
