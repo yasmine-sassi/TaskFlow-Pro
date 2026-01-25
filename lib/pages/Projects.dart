@@ -28,16 +28,9 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
   @override
   Widget build(BuildContext context) {
     final projectsAsync = ref.watch(projectsProvider);
-    final searchQuery = _searchController.text.toLowerCase();
 
     return projectsAsync.when(
       data: (projects) {
-        final filteredProjects = projects
-            .where((p) =>
-                p.name.toLowerCase().contains(searchQuery) ||
-                (p.description?.toLowerCase().contains(searchQuery) ?? false))
-            .toList();
-
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -57,7 +50,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${filteredProjects.length} project${filteredProjects.length != 1 ? 's' : ''}',
+                    '${projects.length} project${projects.length != 1 ? 's' : ''}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -67,37 +60,31 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
               ),
               const SizedBox(height: 24),
 
-              // Search Bar
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search projects...',
-                  prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.blue, width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+              // Create New Project Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Create project feature coming soon'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create New Project'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
                   ),
                 ),
-                onChanged: (value) {
-                  setState(() {});
-                },
               ),
               const SizedBox(height: 32),
 
               // Projects Grid
-              if (filteredProjects.isEmpty)
+              if (projects.isEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 48),
@@ -109,11 +96,9 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                           color: Colors.grey[300],
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          searchQuery.isNotEmpty
-                              ? 'No matching projects'
-                              : 'No projects yet',
-                          style: const TextStyle(
+                        const Text(
+                          'No projects yet',
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: Colors.black54,
@@ -121,9 +106,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          searchQuery.isNotEmpty
-                              ? 'Try adjusting your search'
-                              : 'Get started by creating your first project',
+                          'Get started by creating your first project',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[500],
@@ -137,9 +120,9 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredProjects.length,
+                  itemCount: projects.length,
                   itemBuilder: (context, index) {
-                    final project = filteredProjects[index];
+                    final project = projects[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: ProjectCard(project: project),
