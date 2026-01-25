@@ -4,6 +4,7 @@ import '../data/models/user.dart';
 import 'main_layout.dart';
 import 'projects.dart';
 import 'tasks.dart';
+import 'profile.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -156,9 +157,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       ),
       tasksContent: const TasksPage(),
       projectsContent: const ProjectsPage(),
-      profileContent: const Center(
-        child: Text('Profile page coming soon'),
-      ),
+      profileContent: const ProfilePage(),
     );
   }
 }
