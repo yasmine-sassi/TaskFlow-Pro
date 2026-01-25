@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'presentation/providers/app_providers.dart';
 import 'pages/loginpage.dart';
-import 'pages/admindashboard.dart';
+
 void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
