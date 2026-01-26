@@ -14,7 +14,8 @@ class UserService {
 
       return User(
         id: response.data['id'],
-        name: response.data['name'],
+        firstName: response.data['firstName'],
+        lastName: response.data['lastName'],
         email: response.data['email'],
         avatar: response.data['avatar'],
         role: response.data['role'] ?? 'user',
@@ -27,7 +28,8 @@ class UserService {
   /// Update user profile
   Future<User> updateProfile({
     required int userId,
-    required String name,
+    required String firstName,
+    required String lastName,
     required String email,
     String? avatar,
   }) async {
@@ -35,7 +37,8 @@ class UserService {
       final response = await _dio.patch(
         '/users/$userId',
         data: {
-          'name': name,
+          'firstName': firstName,
+          'lastName': lastName,
           'email': email,
           if (avatar != null) 'avatar': avatar,
         },
@@ -43,7 +46,8 @@ class UserService {
 
       return User(
         id: response.data['id'],
-        name: response.data['name'],
+        firstName: response.data['firstName'],
+        lastName: response.data['lastName'],
         email: response.data['email'],
         avatar: response.data['avatar'],
         role: response.data['role'] ?? 'user',

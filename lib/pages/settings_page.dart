@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
+import 'dart:io';
 import '../presentation/widgets/settings_card.dart';
 import '../presentation/widgets/custom_switch.dart';
 import '../presentation/widgets/custom_input.dart';
-import '../presentation/widgets/settings_tab_button.dart';
 import '../core/theme/app_theme.dart';
 import '../presentation/providers/settings_provider.dart';
 import '../presentation/providers/user_provider.dart';
@@ -23,7 +25,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   late int _currentTabIndex;
 
   // Controllers for profile form
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
 
   // Controllers for security form
@@ -31,23 +34,42 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  // Password visibility states
+  bool _showCurrentPassword = false;
+  bool _showNewPassword = false;
+  bool _showConfirmPassword = false;
+
+  // Image picker
+  final ImagePicker _imagePicker = ImagePicker();
+  String? _selectedImageBase64;
+  bool _isProfileLoading = false;
+  bool _isPasswordLoading = false;
+
   @override
   void initState() {
     super.initState();
     _currentTabIndex = widget.initialTab;
     // Initialize form controllers with user data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = ref.read(userProvider);
-      if (user != null) {
-        _nameController.text = user.name;
-        _emailController.text = user.email;
-      }
+      _loadUserData();
+      // Force reload from backend to ensure fresh data
+      ref.read(userProvider.notifier).loadUserFromBackend();
     });
+  }
+
+  void _loadUserData() {
+    final user = ref.read(userProvider);
+    if (user != null) {
+      _firstNameController.text = user.firstName;
+      _lastNameController.text = user.lastName;
+      _emailController.text = user.email;
+    }
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
@@ -55,13 +77,170 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     super.dispose();
   }
 
-  void _handleSave() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Settings saved'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        final bytes = await File(image.path).readAsBytes();
+        final base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        setState(() {
+          _selectedImageBase64 = base64Image;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: AppTheme.destructive,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    setState(() => _isProfileLoading = true);
+
+    try {
+      print('Updating profile with:');
+      print('First Name: ${_firstNameController.text.trim()}');
+      print('Last Name: ${_lastNameController.text.trim()}');
+      print('Avatar: ${_selectedImageBase64?.substring(0, 50)}...');
+
+      final success = await ref.read(userProvider.notifier).updateProfile(
+            firstName: _firstNameController.text.trim(),
+            lastName: _lastNameController.text.trim(),
+            avatar: _selectedImageBase64,
+          );
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile updated successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          setState(() => _selectedImageBase64 = null);
+          _loadUserData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Failed to update profile. Please check console for details.'),
+              backgroundColor: AppTheme.destructive,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error updating profile: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppTheme.destructive,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProfileLoading = false);
+      }
+    }
+  }
+
+  Future<void> _changePassword() async {
+    // Validation
+    if (_currentPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Current password is required'),
+          backgroundColor: AppTheme.destructive,
+        ),
+      );
+      return;
+    }
+
+    if (_newPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('New password is required'),
+          backgroundColor: AppTheme.destructive,
+        ),
+      );
+      return;
+    }
+
+    if (_newPasswordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match'),
+          backgroundColor: AppTheme.destructive,
+        ),
+      );
+      return;
+    }
+
+    if (_newPasswordController.text.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 8 characters'),
+          backgroundColor: AppTheme.destructive,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isPasswordLoading = true);
+
+    try {
+      await ref.read(userProvider.notifier).changePassword(
+            currentPassword: _currentPasswordController.text,
+            newPassword: _newPasswordController.text,
+            confirmPassword: _confirmPasswordController.text,
+          );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password changed successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _currentPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        String errorMessage = 'Failed to change password';
+        if (e.toString().contains('400')) {
+          errorMessage =
+              'Invalid current password or password requirements not met';
+        } else if (e.toString().contains('401')) {
+          errorMessage = 'Authentication failed. Please login again.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppTheme.destructive,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPasswordLoading = false);
+      }
+    }
   }
 
   @override
@@ -69,6 +248,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final settings = ref.watch(settingsProvider);
     final user = ref.watch(userProvider);
+
+    // Update text controllers when user data changes
+    if (user != null) {
+      if (_firstNameController.text != user.firstName) {
+        _firstNameController.text = user.firstName;
+      }
+      if (_lastNameController.text != user.lastName) {
+        _lastNameController.text = user.lastName;
+      }
+      if (_emailController.text != user.email) {
+        _emailController.text = user.email;
+      }
+    }
 
     final tabs = [
       ('Profile', Icons.person_outline, 0),
@@ -214,12 +406,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Widget _buildProfileTab(user) {
-    final initials = user?.name
-            ?.split(' ')
-            .map((n) => n.isNotEmpty ? n[0] : '')
-            .join('')
-            .toUpperCase() ??
-        'U';
+    final initials = user != null && user.firstName.isNotEmpty
+        ? '${user.firstName[0]}${user.lastName.isNotEmpty ? user.lastName[0] : ''}'
+            .toUpperCase()
+        : 'U';
 
     return SettingsCard(
       title: 'Profile Information',
@@ -230,31 +420,56 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           // Avatar section
           Row(
             children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: AppTheme.primary,
-                foregroundColor: AppTheme.primaryForeground,
-                child: Text(
-                  initials,
-                  style: AppTheme.heading2.copyWith(
-                    color: AppTheme.primaryForeground,
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: AppTheme.primaryForeground,
+                    backgroundImage: _selectedImageBase64 != null
+                        ? MemoryImage(
+                            base64Decode(_selectedImageBase64!.split(',')[1]))
+                        : (user?.avatar != null
+                            ? NetworkImage(user!.avatar!)
+                            : null) as ImageProvider?,
+                    child: _selectedImageBase64 == null && user?.avatar == null
+                        ? Text(
+                            initials,
+                            style: AppTheme.heading2.copyWith(
+                              color: AppTheme.primaryForeground,
+                            ),
+                          )
+                        : null,
                   ),
-                ),
+                  if (_selectedImageBase64 != null)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 24),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    OutlinedButton(
-                      onPressed: () {
-                        // Handle photo upload
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Photo upload not implemented')),
-                        );
-                      },
-                      child: const Text('Change Photo'),
+                    OutlinedButton.icon(
+                      onPressed: _pickImage,
+                      icon: const Icon(Icons.upload, size: 18),
+                      label: const Text('Change Photo'),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -274,19 +489,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             children: [
               Expanded(
                 child: CustomInput(
-                  label: 'Full Name',
-                  controller: _nameController,
+                  label: 'First Name',
+                  controller: _firstNameController,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: CustomInput(
-                  label: 'Email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  label: 'Last Name',
+                  controller: _lastNameController,
                 ),
               ),
             ],
+          ),
+
+          const SizedBox(height: 16),
+
+          CustomInput(
+            label: 'Email',
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            enabled: false,
           ),
 
           const SizedBox(height: 24),
@@ -296,14 +519,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               ElevatedButton(
-                onPressed: () {
-                  ref.read(userProvider.notifier).updateUser(
-                        name: _nameController.text,
-                        email: _emailController.text,
-                      );
-                  _handleSave();
-                },
-                child: const Text('Save Changes'),
+                onPressed: _isProfileLoading ? null : _saveProfile,
+                child: _isProfileLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Save Changes'),
               ),
             ],
           ),
@@ -439,26 +666,125 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomInput(
-            label: 'Current Password',
-            controller: _currentPasswordController,
-            obscureText: true,
+          // Current Password
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Current Password',
+                style: AppTheme.label.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkForeground
+                      : AppTheme.foreground,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _currentPasswordController,
+                obscureText: !_showCurrentPassword,
+                decoration: InputDecoration(
+                  hintText: '••••••••',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showCurrentPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: AppTheme.mutedForeground,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showCurrentPassword = !_showCurrentPassword;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 16),
 
-          CustomInput(
-            label: 'New Password',
-            controller: _newPasswordController,
-            obscureText: true,
+          // New Password
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'New Password',
+                style: AppTheme.label.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkForeground
+                      : AppTheme.foreground,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _newPasswordController,
+                obscureText: !_showNewPassword,
+                decoration: InputDecoration(
+                  hintText: '••••••••',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showNewPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: AppTheme.mutedForeground,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showNewPassword = !_showNewPassword;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 16),
 
-          CustomInput(
-            label: 'Confirm New Password',
-            controller: _confirmPasswordController,
-            obscureText: true,
+          // Confirm New Password
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Confirm New Password',
+                style: AppTheme.label.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkForeground
+                      : AppTheme.foreground,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _confirmPasswordController,
+                obscureText: !_showConfirmPassword,
+                decoration: InputDecoration(
+                  hintText: '••••••••',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: AppTheme.mutedForeground,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 24),
@@ -467,24 +793,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               ElevatedButton(
-                onPressed: () {
-                  if (_newPasswordController.text ==
-                      _confirmPasswordController.text) {
-                    // Handle password update
-                    _handleSave();
-                    _currentPasswordController.clear();
-                    _newPasswordController.clear();
-                    _confirmPasswordController.clear();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Passwords do not match'),
-                        backgroundColor: AppTheme.destructive,
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Update Password'),
+                onPressed: _isPasswordLoading ? null : _changePassword,
+                child: _isPasswordLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Update Password'),
               ),
             ],
           ),

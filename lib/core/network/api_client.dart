@@ -41,6 +41,55 @@ class LoginDto {
         'password': password,
       };
 }
+
+class UpdateProfileDto {
+  final String? firstName;
+  final String? lastName;
+  final String? avatar;
+
+  UpdateProfileDto({
+    this.firstName,
+    this.lastName,
+    this.avatar,
+  });
+
+  Map<String, dynamic> toJson() => {
+        if (firstName != null) 'firstName': firstName,
+        if (lastName != null) 'lastName': lastName,
+        if (avatar != null) 'avatar': avatar,
+      };
+}
+
+class ChangePasswordDto {
+  final String currentPassword;
+  final String newPassword;
+  final String confirmPassword;
+
+  ChangePasswordDto({
+    required this.currentPassword,
+    required this.newPassword,
+    required this.confirmPassword,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      };
+}
+
+class MessageResponse {
+  final String message;
+
+  MessageResponse({required this.message});
+
+  factory MessageResponse.fromJson(Map<String, dynamic> json) {
+    return MessageResponse(message: json['message'] as String);
+  }
+
+  Map<String, dynamic> toJson() => {'message': message};
+}
+
 class UsersResponse {
   final int statusCode;
   final String message;
@@ -88,8 +137,6 @@ class AuthResponse {
       );
 }
 
-
-
 // ==================== API Client ====================
 
 @RestApi()
@@ -97,7 +144,7 @@ abstract class AuthApiClient {
   factory AuthApiClient(Dio dio, {String baseUrl}) = _AuthApiClient;
 
   /// Register a new user
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await authClient.register(RegisterDto(
@@ -111,7 +158,7 @@ abstract class AuthApiClient {
   Future<AuthResponse> register(@Body() RegisterDto dto);
 
   /// Login with email and password
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await authClient.login(LoginDto(
@@ -123,28 +170,46 @@ abstract class AuthApiClient {
   Future<AuthResponse> login(@Body() LoginDto dto);
 
   /// Logout current user
-  /// 
+  ///
   /// Requires authentication token
   @POST('/auth/logout')
   Future<void> logout();
 
   /// Get current authenticated user
-  /// 
+  ///
   /// Requires authentication token
   @GET('/auth/me')
   Future<User> getMe();
 
   /// Admin-only endpoint
-  /// 
+  ///
   /// Requires authentication token and admin role
   @GET('/auth/admin-only')
-  Future<Map<String, dynamic>> adminOnly();
+  Future<MessageResponse> adminOnly();
 
   @GET('/users')
   Future<UsersResponse> getusers();
 
   @DELETE('/users/{id}')
   Future<void> deleteUser(@Path('id') String id);
+
+  /// Get current user profile
+  ///
+  /// Requires authentication token
+  @GET('/users/profile')
+  Future<User> getProfile();
+
+  /// Update current user profile
+  ///
+  /// Requires authentication token
+  @PATCH('/users/profile')
+  Future<User> updateProfile(@Body() UpdateProfileDto dto);
+
+  /// Change user password
+  ///
+  /// Requires authentication token
+  @POST('/users/change-password')
+  Future<MessageResponse> changePassword(@Body() ChangePasswordDto dto);
 }
 
 // ==================== API Client Factory ====================
@@ -153,7 +218,7 @@ class AuthApiClientFactory {
   // Singleton instance
   static AuthApiClient? _instance;
   static Dio? _dio;
-  
+
   // Private constructor to prevent instantiation
   AuthApiClientFactory._();
 
@@ -217,7 +282,8 @@ class AuthApiClientFactory {
         if (error.response?.statusCode == 401) {
           print('Authentication error: Token may be invalid or expired');
         } else if (error.response?.statusCode == 403) {
-          print('Forbidden: You do not have permission to access this resource');
+          print(
+              'Forbidden: You do not have permission to access this resource');
         }
         handler.next(error);
       },
@@ -269,4 +335,3 @@ extension AuthApiClientFactoryExtension on AuthApiClient {
     AuthApiClientFactory.removeAccessToken();
   }
 }
-

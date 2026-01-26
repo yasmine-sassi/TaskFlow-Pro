@@ -15,7 +15,7 @@ TaskModel _$TaskModelFromJson(Map<String, dynamic> json) => TaskModel(
       dueDate: json['dueDate'] == null
           ? null
           : DateTime.parse(json['dueDate'] as String),
-      position: json['position'] as int,
+      position: (json['position'] as num).toInt(),
       projectId: json['projectId'] as String,
       ownerId: json['ownerId'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
