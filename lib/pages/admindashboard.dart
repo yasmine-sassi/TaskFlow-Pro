@@ -155,19 +155,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
                 const Divider(height: 1),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: users.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final user = users[index];
-                    return _UserListItem(
-                      user: user,
-                      onDelete: () => _deleteUser(user.id),
-                    );
-                  },
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: users.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      return _UserListItem(
+                        user: user,
+                        onDelete: () => _deleteUser(user.id),
+                        isDark: isDark,
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -259,83 +263,231 @@ class _StatCard extends StatelessWidget {
 class _UserListItem extends StatelessWidget {
   final User user;
   final VoidCallback onDelete;
+  final bool isDark;
 
   const _UserListItem({
     required this.user,
     required this.onDelete,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: CircleAvatar(
-        backgroundColor: isDark
-            ? const Color(0xFF8B92FF).withValues(alpha: 0.15)
-            : Theme.of(context).primaryColor.withValues(alpha: 0.1),
-        child: Text(
-          user.firstName[0],
-          style: TextStyle(
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2749) : Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2D3A5F) : Colors.grey[200]!,
+        ),
+        boxShadow: [
+          BoxShadow(
             color: isDark
-                ? const Color(0xFF8B92FF)
-                : Theme.of(context).primaryColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      title: Text(
-        user.fullName,
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: isDark ? const Color(0xFFF0F4F8) : Colors.black87,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          Text(
-            user.email,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? const Color(0xFFB4C1D8) : Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _Badge(
-                label: user.role,
-                color: user.role == 'admin'
-                    ? Theme.of(context).primaryColor
-                    : (isDark ? const Color(0xFFB4C1D8) : Colors.grey[600]!),
-              ),
-              const SizedBox(width: 8),
-              _Badge(
-                label: user.status,
-                color: user.status == 'active'
-                    ? Colors.green
-                    : (isDark ? const Color(0xFFB4C1D8) : Colors.grey),
-                outlined: true,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                user.lastActive,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark ? const Color(0xFFB4C1D8) : Colors.grey,
-                ),
-              ),
-            ],
+                ? Colors.black.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline, color: Colors.red),
-        onPressed: onDelete,
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Avatar with gradient
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        isDark
+                            ? const Color(0xFF8B92FF)
+                            : Theme.of(context).primaryColor,
+                        isDark
+                            ? const Color(0xFF6366F1)
+                            : Theme.of(context)
+                                .primaryColor
+                                .withValues(alpha: 0.7),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isDark
+                                ? const Color(0xFF8B92FF)
+                                : Theme.of(context).primaryColor)
+                            .withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      user.firstName[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // User info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 40),
+                        child: Text(
+                          user.fullName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 19,
+                            letterSpacing: 0.2,
+                            color: isDark
+                                ? const Color(0xFFF0F4F8)
+                                : Colors.black87,
+                            shadows: isDark
+                                ? [
+                                    Shadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.3),
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 2,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.email_outlined,
+                            size: 14,
+                            color: isDark
+                                ? const Color(0xFFB4C1D8)
+                                : Colors.grey[600],
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              user.email,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark
+                                    ? const Color(0xFFB4C1D8)
+                                    : Colors.grey[600],
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _Badge(
+                            label: user.role,
+                            color: user.role == 'ADMIN'
+                                ? (isDark
+                                    ? const Color(0xFF8B92FF)
+                                    : Theme.of(context).primaryColor)
+                                : (isDark
+                                    ? const Color(0xFF64748B)
+                                    : Colors.grey[600]!),
+                            icon: user.role == 'ADMIN'
+                                ? Icons.shield
+                                : Icons.person,
+                          ),
+                          const SizedBox(width: 8),
+                          _Badge(
+                            label: user.status,
+                            color: user.status == 'active'
+                                ? (isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : Colors.green)
+                                : (isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : Colors.grey),
+                            icon: user.status == 'active'
+                                ? Icons.check_circle
+                                : Icons.remove_circle,
+                            outlined: true,
+                          ),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 12,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : Colors.grey[500],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                user.lastActive,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Delete button positioned at top-right
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.red.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onDelete,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Center(
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-      isThreeLine: true,
     );
   }
 }
@@ -344,29 +496,47 @@ class _Badge extends StatelessWidget {
   final String label;
   final Color color;
   final bool outlined;
+  final IconData? icon;
 
   const _Badge({
     required this.label,
     required this.color,
     this.outlined = false,
+    this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: outlined ? Colors.transparent : color,
-        border: outlined ? Border.all(color: color, width: 1) : null,
-        borderRadius: BorderRadius.circular(4),
+        color: outlined ? Colors.transparent : color.withValues(alpha: 0.15),
+        border: outlined
+            ? Border.all(color: color.withValues(alpha: 0.5), width: 1.5)
+            : null,
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: outlined ? color : Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: 12,
+              color: color,
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
       ),
     );
   }
