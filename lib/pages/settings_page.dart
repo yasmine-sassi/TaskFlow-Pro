@@ -282,16 +282,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               children: [
                 Text(
                   'Settings',
-                  style: AppTheme.heading1.copyWith(
-                    color:
-                        isDark ? AppTheme.darkForeground : AppTheme.foreground,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? const Color(0xFFF0F4F8) : Colors.black87,
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
                   'Manage your account and preferences',
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.mutedForeground,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color:
+                        isDark ? const Color(0xFFB4C1D8) : Colors.grey.shade600,
                   ),
                 ),
               ],
@@ -347,13 +351,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+              ? Theme.of(context).primaryColor.withValues(
+                    alpha: isDark ? 0.24 : 0.10,
+                  )
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
+          // Navbar style: no border, just subtle purple fill
           border: isSelected
-              ? Border.all(
-                  color: Theme.of(context).primaryColor,
-                  width: 1.5,
+              ? const Border(
+                  bottom: BorderSide(color: Color(0xFF6366F1), width: 2),
                 )
               : null,
         ),
@@ -363,8 +369,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             Icon(
               icon,
               color: isSelected
-                  ? Theme.of(context).primaryColor
-                  : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                  ? const Color(0xFF6366F1)
+                  : (isDark ? const Color(0xFFB4C1D8) : Colors.grey[600]),
               size: 20,
             ),
             const SizedBox(height: 4),
@@ -375,8 +381,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                    ? const Color(0xFF6366F1)
+                    : (isDark ? const Color(0xFFB4C1D8) : Colors.grey[600]),
               ),
             ),
           ],

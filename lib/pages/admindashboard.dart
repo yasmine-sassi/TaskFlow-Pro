@@ -68,14 +68,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return MainLayout(
       appTitle: 'Admin Dashboard',
       dashboardContent: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Manage users and monitor system activity',
-            style: TextStyle(color: Colors.grey, fontSize: 14),
+            style: TextStyle(
+              color: isDark ? const Color(0xFFB4C1D8) : Colors.grey,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -85,18 +90,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
               Expanded(
                 child: _StatCard(
                   icon: Icons.people,
-                  iconColor: Theme.of(context).primaryColor,
+                  iconColor: isDark
+                      ? const Color(0xFF8B92FF)
+                      : Theme.of(context).primaryColor,
                   value: users.length.toString(),
                   label: 'Total Users',
+                  isDark: isDark,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
                   icon: Icons.people,
-                  iconColor: Colors.green,
+                  iconColor: isDark ? const Color(0xFF4ADE80) : Colors.green,
                   value: activeUsersCount.toString(),
                   label: 'Active Users',
+                  isDark: isDark,
                 ),
               ),
             ],
@@ -104,35 +113,44 @@ class _AdminDashboardState extends State<AdminDashboard> {
           const SizedBox(height: 12),
           _StatCard(
             icon: Icons.shield,
-            iconColor: Theme.of(context).primaryColor,
+            iconColor: isDark
+                ? const Color(0xFF8B92FF)
+                : Theme.of(context).primaryColor,
             value: adminCount.toString(),
             label: 'Administrators',
+            isDark: isDark,
           ),
           const SizedBox(height: 24),
 
           // Users Table
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF151B3D) : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(
+                color: isDark ? const Color(0xFF2D3A5F) : Colors.grey[200]!,
+              ),
+              boxShadow: isDark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16),
+                Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     'All Users',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
+                      color: isDark ? const Color(0xFFF0F4F8) : Colors.black87,
                     ),
                   ),
                 ),
@@ -168,28 +186,38 @@ class _StatCard extends StatelessWidget {
   final Color iconColor;
   final String value;
   final String label;
+  final bool isDark;
 
   const _StatCard({
     required this.icon,
     required this.iconColor,
     required this.value,
     required this.label,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final Color background = isDark ? const Color(0xFF1E2749) : Colors.white;
+    final Color border = isDark ? const Color(0xFF2D3A5F) : Colors.grey[200]!;
+    final Color valueColor = isDark ? const Color(0xFFF0F4F8) : Colors.black87;
+    final Color labelColor = isDark ? const Color(0xFFB4C1D8) : Colors.grey;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: background,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: border),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Row(
         children: [
@@ -207,16 +235,17 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
+                  color: valueColor,
                 ),
               ),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey,
+                  color: labelColor,
                 ),
               ),
             ],
@@ -238,21 +267,29 @@ class _UserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+        backgroundColor: isDark
+            ? const Color(0xFF8B92FF).withValues(alpha: 0.15)
+            : Theme.of(context).primaryColor.withValues(alpha: 0.1),
         child: Text(
           user.firstName[0],
           style: TextStyle(
-            color: Theme.of(context).primaryColor,
+            color: isDark
+                ? const Color(0xFF8B92FF)
+                : Theme.of(context).primaryColor,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
       title: Text(
         user.fullName,
-        style: const TextStyle(fontWeight: FontWeight.w500),
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: isDark ? const Color(0xFFF0F4F8) : Colors.black87,
+        ),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,7 +297,10 @@ class _UserListItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             user.email,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFFB4C1D8) : Colors.grey,
+            ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -269,18 +309,23 @@ class _UserListItem extends StatelessWidget {
                 label: user.role,
                 color: user.role == 'admin'
                     ? Theme.of(context).primaryColor
-                    : Colors.grey[600]!,
+                    : (isDark ? const Color(0xFFB4C1D8) : Colors.grey[600]!),
               ),
               const SizedBox(width: 8),
               _Badge(
                 label: user.status,
-                color: user.status == 'active' ? Colors.green : Colors.grey,
+                color: user.status == 'active'
+                    ? Colors.green
+                    : (isDark ? const Color(0xFFB4C1D8) : Colors.grey),
                 outlined: true,
               ),
               const SizedBox(width: 8),
               Text(
                 user.lastActive,
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? const Color(0xFFB4C1D8) : Colors.grey,
+                ),
               ),
             ],
           ),

@@ -64,6 +64,7 @@ class _TasksPageState extends ConsumerState<TasksPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final tasksAsync = ref.watch(tasksProvider);
     final searchQuery = _searchController.text.toLowerCase();
 
@@ -88,12 +89,12 @@ class _TasksPageState extends ConsumerState<TasksPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'My Tasks',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: isDark ? const Color(0xFFF0F4F8) : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -101,7 +102,8 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                     '${filteredTasks.length} task${filteredTasks.length != 1 ? 's' : ''}',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color:
+                          isDark ? const Color(0xFFB4C1D8) : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -117,20 +119,36 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                       controller: _searchController,
                       decoration: InputDecoration(
                         hintText: 'Search tasks...',
-                        prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                        prefixIcon: Icon(Icons.search,
+                            color: isDark
+                                ? const Color(0xFFB4C1D8)
+                                : Colors.grey[400]),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? const Color(0xFF2D3A5F)
+                                : Colors.grey[300]!,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? const Color(0xFF2D3A5F)
+                                : Colors.grey[300]!,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: Colors.blue, width: 2),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF8B5CF6),
+                            width: 2,
+                          ),
                         ),
+                        filled: true,
+                        fillColor:
+                            isDark ? const Color(0xFF1E2749) : Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -147,12 +165,19 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
+                      color: isDark ? const Color(0xFF1E2749) : Colors.white,
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF2D3A5F)
+                            : Colors.grey[300]!,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: DropdownButton<String>(
                       value: _statusFilter,
                       underline: const SizedBox(),
+                      dropdownColor:
+                          isDark ? const Color(0xFF151B3D) : Colors.white,
                       items: const [
                         DropdownMenuItem(
                             value: 'all', child: Text('All Status')),
@@ -163,6 +188,12 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                             value: 'IN_REVIEW', child: Text('In Review')),
                         DropdownMenuItem(value: 'DONE', child: Text('Done')),
                       ],
+                      style: TextStyle(
+                        color:
+                            isDark ? const Color(0xFFF0F4F8) : Colors.black87,
+                      ),
+                      iconEnabledColor:
+                          isDark ? const Color(0xFFB4C1D8) : Colors.black54,
                       onChanged: (value) {
                         setState(() {
                           _statusFilter = value!;
@@ -176,12 +207,19 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
+                      color: isDark ? const Color(0xFF1E2749) : Colors.white,
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF2D3A5F)
+                            : Colors.grey[300]!,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: DropdownButton<String>(
                       value: _priorityFilter,
                       underline: const SizedBox(),
+                      dropdownColor:
+                          isDark ? const Color(0xFF151B3D) : Colors.white,
                       items: const [
                         DropdownMenuItem(
                             value: 'all', child: Text('All Priority')),
@@ -192,6 +230,12 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                         DropdownMenuItem(
                             value: 'URGENT', child: Text('Urgent')),
                       ],
+                      style: TextStyle(
+                        color:
+                            isDark ? const Color(0xFFF0F4F8) : Colors.black87,
+                      ),
+                      iconEnabledColor:
+                          isDark ? const Color(0xFFB4C1D8) : Colors.black54,
                       onChanged: (value) {
                         setState(() {
                           _priorityFilter = value!;
@@ -213,17 +257,21 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                         Icon(
                           Icons.task_outlined,
                           size: 64,
-                          color: Colors.grey[300],
+                          color: isDark
+                              ? const Color(0xFF2D3A5F)
+                              : Colors.grey[300],
                         ),
                         const SizedBox(height: 16),
                         Text(
                           searchQuery.isNotEmpty
                               ? 'No matching tasks'
                               : 'No tasks yet',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black54,
+                            color: isDark
+                                ? const Color(0xFFF0F4F8)
+                                : Colors.black54,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -233,7 +281,9 @@ class _TasksPageState extends ConsumerState<TasksPage> {
                               : 'Tasks assigned to you will appear here',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[500],
+                            color: isDark
+                                ? const Color(0xFFB4C1D8)
+                                : Colors.grey[500],
                           ),
                         ),
                       ],
@@ -333,6 +383,7 @@ class _TaskCardState extends State<TaskCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final priorityColor = widget.getPriorityColor(widget.task.priority);
     final statusColor = widget.getStatusColor(widget.task.status);
 
@@ -342,28 +393,33 @@ class _TaskCardState extends State<TaskCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF151B3D) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color:
-                _isHovered ? Colors.blue.withOpacity(0.2) : Colors.grey[200]!,
+            color: _isHovered
+                ? const Color(0xFF8B5CF6).withOpacity(0.35)
+                : (isDark ? const Color(0xFF2D3A5F) : Colors.grey[200]!),
             width: 1,
           ),
           boxShadow: _isHovered
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: isDark
+                        ? Colors.black.withOpacity(0.35)
+                        : Colors.black.withOpacity(0.1),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
                 ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              : isDark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -393,10 +449,12 @@ class _TaskCardState extends State<TaskCard> {
                         Expanded(
                           child: Text(
                             widget.task.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: isDark
+                                  ? const Color(0xFFF0F4F8)
+                                  : Colors.black87,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -432,7 +490,9 @@ class _TaskCardState extends State<TaskCard> {
                         widget.task.description!,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[600],
+                          color: isDark
+                              ? const Color(0xFFB4C1D8)
+                              : Colors.grey[600],
                           height: 1.4,
                         ),
                         maxLines: 2,
@@ -476,14 +536,18 @@ class _TaskCardState extends State<TaskCard> {
                         Icon(
                           Icons.calendar_today,
                           size: 12,
-                          color: Colors.grey[600],
+                          color: isDark
+                              ? const Color(0xFFB4C1D8)
+                              : Colors.grey[600],
                         ),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('MMM dd').format(widget.task.dueDate!),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: isDark
+                                ? const Color(0xFFB4C1D8)
+                                : Colors.grey[600],
                           ),
                         ),
                       ],

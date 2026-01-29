@@ -16,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
 
   bool _showPassword = false;
   bool _isLoading = false;
@@ -30,6 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -245,7 +247,11 @@ class _LoginPageState extends State<LoginPage> {
                                 TextField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.next,
                                   enabled: !_isLoading,
+                                  onSubmitted: (_) {
+                                    _passwordFocusNode.requestFocus();
+                                  },
                                   decoration: InputDecoration(
                                     hintText: 'you@example.com',
                                     border: OutlineInputBorder(
@@ -274,8 +280,15 @@ class _LoginPageState extends State<LoginPage> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: _passwordController,
+                                  focusNode: _passwordFocusNode,
                                   obscureText: !_showPassword,
+                                  textInputAction: TextInputAction.done,
                                   enabled: !_isLoading,
+                                  onSubmitted: (_) {
+                                    if (!_isLoading) {
+                                      _handleSubmit();
+                                    }
+                                  },
                                   decoration: InputDecoration(
                                     hintText: '••••••••',
                                     border: OutlineInputBorder(
@@ -340,41 +353,6 @@ class _LoginPageState extends State<LoginPage> {
                                           )
                                         : const Text('Sign in'),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Demo Credentials
-                          const SizedBox(height: 24),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Demo Credentials',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey[700],
-                                      ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'User: user@test.com / password',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Admin: admin@test.com / password',
-                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
                             ),
