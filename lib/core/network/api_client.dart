@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../../data/models/user.dart';
+import '../../data/models/project_model.dart';
+import '../../data/models/task_model.dart';
 
 part 'api_client.g.dart';
 
@@ -145,6 +147,12 @@ abstract class AuthApiClient {
 
   @DELETE('/users/{id}')
   Future<void> deleteUser(@Path('id') String id);
+
+  @GET('/projects')
+  Future<List<ProjectModel>> getProjects();
+
+  @GET('/tasks/my-tasks')
+  Future<List<TaskModel>> getMyTasks();
 }
 
 // ==================== API Client Factory ====================
