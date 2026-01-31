@@ -5,6 +5,7 @@ import 'main_layout.dart';
 import 'settings_page.dart';
 import 'projects.dart';
 import 'tasks.dart';
+import 'profile.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -181,6 +182,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       tasksContent: const TasksPage(),
       projectsContent: const ProjectsPage(),
       profileContent: const SettingsPage(initialTab: 0),
+      profileContent: const ProfilePage(),
     );
   }
 }

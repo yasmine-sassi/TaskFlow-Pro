@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../core/network/api_client.dart';
 import 'admindashboard.dart';
+import 'dashboard.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -104,10 +105,17 @@ class _LoginPageState extends State<LoginPage> {
 
         // 4. Navigate to main app dashboard
         if (mounted) {
+          if (userData['role'] == 'USER') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardPage()),
+            );
+          }
+          else {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const AdminDashboard()),
-          );
+          );}
         }
       }
     } catch (e) {

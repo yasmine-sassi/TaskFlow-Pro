@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../../data/models/user.dart';
+import '../../data/models/project_model.dart';
+import '../../data/models/task_model.dart';
 
 part 'api_client.g.dart';
 
@@ -210,6 +212,11 @@ abstract class AuthApiClient {
   /// Requires authentication token
   @POST('/users/change-password')
   Future<MessageResponse> changePassword(@Body() ChangePasswordDto dto);
+  @GET('/projects')
+  Future<List<ProjectModel>> getProjects();
+
+  @GET('/tasks/my-tasks')
+  Future<List<TaskModel>> getMyTasks();
 }
 
 // ==================== API Client Factory ====================
