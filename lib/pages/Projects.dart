@@ -94,6 +94,11 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Create New Project Button
               SizedBox(
                 width: double.infinity,
@@ -131,10 +136,6 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          searchQuery.isNotEmpty
-                              ? 'No matching projects'
-                              : 'No projects yet',
-                        const Text(
                           'No projects yet',
                           style: TextStyle(
                             fontSize: 18,
@@ -266,7 +267,7 @@ class _ProjectCardState extends State<ProjectCard> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _isHovered
-                ? const Color(0xFF8B5CF6).withOpacity(0.35)
+                ? const Color(0xFF8B5CF6).withValues(alpha: 0.35)
                 : (isDark ? const Color(0xFF2D3A5F) : Colors.grey[200]!),
             width: 1,
           ),
@@ -274,8 +275,8 @@ class _ProjectCardState extends State<ProjectCard> {
               ? [
                   BoxShadow(
                     color: isDark
-                        ? Colors.black.withOpacity(0.35)
-                        : Colors.black.withOpacity(0.1),
+                        ? Colors.black.withValues(alpha: 0.35)
+                        : Colors.black.withValues(alpha: 0.1),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -284,7 +285,7 @@ class _ProjectCardState extends State<ProjectCard> {
                   ? null
                   : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -300,7 +301,7 @@ class _ProjectCardState extends State<ProjectCard> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: projectColor.withOpacity(0.1),
+                  color: projectColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(

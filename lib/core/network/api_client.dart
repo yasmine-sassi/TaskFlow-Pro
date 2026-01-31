@@ -122,6 +122,50 @@ class UsersResponse {
   }
 }
 
+class ProjectsResponse {
+  final int statusCode;
+  final String message;
+  final List<ProjectModel> data;
+
+  ProjectsResponse({
+    required this.statusCode,
+    required this.message,
+    required this.data,
+  });
+
+  factory ProjectsResponse.fromJson(Map<String, dynamic> json) {
+    return ProjectsResponse(
+      statusCode: json['statusCode'] as int,
+      message: json['message'] as String,
+      data: (json['data'] as List)
+          .map((item) => ProjectModel.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class TasksResponse {
+  final int statusCode;
+  final String message;
+  final List<TaskModel> data;
+
+  TasksResponse({
+    required this.statusCode,
+    required this.message,
+    required this.data,
+  });
+
+  factory TasksResponse.fromJson(Map<String, dynamic> json) {
+    return TasksResponse(
+      statusCode: json['statusCode'] as int,
+      message: json['message'] as String,
+      data: (json['data'] as List)
+          .map((item) => TaskModel.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
 // ==================== Response Models ====================
 
 class AuthResponse {
@@ -213,10 +257,10 @@ abstract class AuthApiClient {
   @POST('/users/change-password')
   Future<MessageResponse> changePassword(@Body() ChangePasswordDto dto);
   @GET('/projects')
-  Future<List<ProjectModel>> getProjects();
+  Future<ProjectsResponse> getProjects();
 
   @GET('/tasks/my-tasks')
-  Future<List<TaskModel>> getMyTasks();
+  Future<TasksResponse> getMyTasks();
 }
 
 // ==================== API Client Factory ====================

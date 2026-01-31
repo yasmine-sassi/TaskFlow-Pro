@@ -181,7 +181,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
       ),
       tasksContent: const TasksPage(),
       projectsContent: const ProjectsPage(),
-      profileContent: const SettingsPage(initialTab: 0),
       profileContent: const ProfilePage(),
     );
   }

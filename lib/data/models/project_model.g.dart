@@ -36,21 +36,28 @@ ProjectModel _$ProjectModelFromJson(Map<String, dynamic> json) => ProjectModel(
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       members: (json['members'] as List<dynamic>?)
-              ?.map(
-                  (e) => ProjectMemberModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+          ?.map((e) => ProjectMemberModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
-Map<String, dynamic> _$ProjectModelToJson(ProjectModel instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'description': instance.description,
-      'color': instance.color,
-      'isArchived': instance.isArchived,
-      'ownerId': instance.ownerId,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-      'members': instance.members,
-    };
+Map<String, dynamic> _$ProjectModelToJson(ProjectModel instance) {
+  final val = <String, dynamic>{
+    'id': instance.id,
+    'name': instance.name,
+    'description': instance.description,
+    'color': instance.color,
+    'isArchived': instance.isArchived,
+    'ownerId': instance.ownerId,
+    'createdAt': instance.createdAt.toIso8601String(),
+    'updatedAt': instance.updatedAt.toIso8601String(),
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('members', instance.members);
+  return val;
+}

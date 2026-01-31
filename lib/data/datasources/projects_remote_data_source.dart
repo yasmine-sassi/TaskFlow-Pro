@@ -15,13 +15,26 @@ class ProjectsRemoteDataSourceImpl implements ProjectsRemoteDataSource {
   Future<List<ProjectModel>> getAllProjects() async {
     try {
       final response = await dio.get(ApiEndpoints.projects);
+      print('Projects response: ${response.data}');
+
       // Backend wraps response in { statusCode, message, data }
       final responseData = response.data;
       final List<dynamic> data = responseData['data'] as List<dynamic>;
-      return data
-          .map((item) => ProjectModel.fromJson(item as Map<String, dynamic>))
-          .toList();
+
+      return data.map((item) {
+        try {
+          final project = item as Map<String, dynamic>;
+          // Remove members field if present as it's not in response
+          project.remove('members');
+          return ProjectModel.fromJson(project);
+        } catch (e) {
+          print('Error parsing project item: $e');
+          print('Item: $item');
+          rethrow;
+        }
+      }).toList();
     } catch (e) {
+      print('Error in getAllProjects: $e');
       rethrow;
     }
   }

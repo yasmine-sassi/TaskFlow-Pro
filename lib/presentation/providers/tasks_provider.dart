@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/dio_client.dart';
+import 'app_providers.dart';
 import '../../data/datasources/tasks_remote_data_source.dart';
 import '../../data/repositories/tasks_repository.dart';
 import '../../domain/entities/task.dart';
 
 final tasksRepositoryProvider = Provider<TasksRepository>((ref) {
-  final dioClient = DioClient();
+  final dioClient = ref.watch(dioClientProvider);
   final remoteDataSource = TasksRemoteDataSourceImpl(dioClient.dio);
   return TasksRepositoryImpl(remoteDataSource);
 });

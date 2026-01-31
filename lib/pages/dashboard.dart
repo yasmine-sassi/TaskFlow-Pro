@@ -6,7 +6,10 @@ import '../data/models/user.dart';
 import '../data/models/project_model.dart';
 import '../data/models/task_model.dart';
 import '../core/network/api_client.dart';
-
+import 'main_layout.dart';
+import 'tasks.dart';
+import 'Projects.dart';
+import 'profile.dart';
 
 extension HexColor on String {
   Color toColor() {
@@ -30,7 +33,7 @@ class _DashboardPageState extends State<DashboardPage> {
   final AuthApiClient? apiClient = AuthApiClientFactory.instance;
   List<ProjectModel> userProjects = [];
   List<TaskModel> tasks = [];
-   User currentUser = User(
+  User currentUser = User(
     id: '',
     email: '',
     firstName: '',
@@ -38,13 +41,12 @@ class _DashboardPageState extends State<DashboardPage> {
     role: '',
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
-    );
+  );
 
-  
   @override
   void initState() {
     super.initState();
-     getcurrentUser();
+    getcurrentUser();
     loadprojects();
     loadtasks();
   }
@@ -52,35 +54,33 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> getcurrentUser() async {
     final response = await apiClient!.getMe();
     setState(() {
-       currentUser = response;
+      currentUser = response;
     });
   }
 
   Future<void> loadprojects() async {
     final response = await apiClient!.getProjects();
     setState(() {
-      userProjects = response;
+      userProjects = response.data;
     });
   }
+
   Future<void> loadtasks() async {
     final response = await apiClient!.getMyTasks();
     setState(() {
-      tasks = response;
+      tasks = response.data;
     });
   }
-  
-
-  
-
 
   // bool get isAdmin => currentUser.role == 'admin';
 
   int get todoCount => tasks.where((t) => t.status == 'TODO').length;
-  
-  int get inProgressCount => tasks.where((t) => t.status == 'IN_PROGRESS').length;
-  
+
+  int get inProgressCount =>
+      tasks.where((t) => t.status == 'IN_PROGRESS').length;
+
   int get doneCount => tasks.where((t) => t.status == 'DONE').length;
-  
+
   // int get overdueCount => tasks.where((t) {
   //       final isPastDue = t.dueDate.isBefore(DateTime.now());
   //       final isNotToday = !_isToday(t.dueDate  );
@@ -109,25 +109,26 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeSection(),
-              const SizedBox(height: 24),
-              _buildStatsGrid(),
-              const SizedBox(height: 24),
-              _buildProjectsOverview(),
-              const SizedBox(height: 24),
-              _buildContentGrid(),
-            ],
-          ),
+    return MainLayout(
+      appTitle: 'Dashboard',
+      dashboardContent: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildWelcomeSection(),
+            const SizedBox(height: 24),
+            _buildStatsGrid(),
+            const SizedBox(height: 24),
+            _buildProjectsOverview(),
+            const SizedBox(height: 24),
+            _buildContentGrid(),
+          ],
         ),
       ),
+      tasksContent: const TasksPage(),
+      projectsContent: const ProjectsPage(),
+      profileContent: const ProfilePage(),
     );
   }
 
@@ -195,7 +196,7 @@ class _DashboardPageState extends State<DashboardPage> {
             : constraints.maxWidth > 600
                 ? 2
                 : 1;
-        
+
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -249,7 +250,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     : constraints.maxWidth > 600
                         ? 2
                         : 1;
-                
+
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -262,7 +263,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   itemCount: userProjects.take(4).length,
                   itemBuilder: (context, index) {
                     final project = userProjects[index];
-                    final taskCount = tasks.where((t) => t.projectId == project.id).length;
+                    final taskCount =
+                        tasks.where((t) => t.projectId == project.id).length;
                     return _ProjectCard(
                       project: project,
                       taskCount: taskCount,
@@ -511,7 +513,7 @@ class _ProjectCard extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color:project.color!.toColor().withOpacity(0.15),
+                color: project.color!.toColor().withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -658,7 +660,7 @@ class TaskCard extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color:project.color!.toColor(),
+                    color: project.color!.toColor(),
                     shape: BoxShape.circle,
                   ),
                 ),

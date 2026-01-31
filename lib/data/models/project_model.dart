@@ -35,7 +35,7 @@ class ProjectModel {
   final String ownerId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  @JsonKey(defaultValue: [])
+  @JsonKey(includeIfNull: false, defaultValue: null)
   final List<ProjectMemberModel>? members;
 
   ProjectModel({

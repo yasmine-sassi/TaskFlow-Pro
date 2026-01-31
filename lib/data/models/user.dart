@@ -45,18 +45,25 @@ class User {
   // From JSON factory constructor
   factory User.fromJson(Map<String, dynamic> json) {
     // Handle nested data structure from backend
-    final data =
-        json.containsKey('data') ? json['data'] as Map<String, dynamic> : json;
+    final Map<String, dynamic> data = json.containsKey('data')
+        ? (json['data'] as Map<String, dynamic>)
+        : json;
+    final Map<String, dynamic> userData =
+        data.containsKey('user') ? data['user'] as Map<String, dynamic> : data;
 
     return User(
-      id: data['id'] as String,
-      email: data['email'] as String,
-      firstName: data['firstName'] as String? ?? '',
-      lastName: data['lastName'] as String? ?? '',
-      avatar: data['avatar'] as String?,
-      role: data['role'] as String,
-      createdAt: DateTime.parse(data['createdAt'] as String),
-      updatedAt: DateTime.parse(data['updatedAt'] as String),
+      id: (userData['id'] ?? userData['userId'] ?? '') as String,
+      email: (userData['email'] ?? '') as String,
+      firstName: userData['firstName'] as String? ?? '',
+      lastName: userData['lastName'] as String? ?? '',
+      avatar: userData['avatar'] as String?,
+      role: (userData['role'] ?? '') as String,
+      createdAt: userData['createdAt'] != null
+          ? DateTime.parse(userData['createdAt'] as String)
+          : DateTime.now(),
+      updatedAt: userData['updatedAt'] != null
+          ? DateTime.parse(userData['updatedAt'] as String)
+          : DateTime.now(),
     );
   }
 

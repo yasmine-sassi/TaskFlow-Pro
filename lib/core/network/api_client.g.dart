@@ -205,15 +205,12 @@ class _AuthApiClient implements AuthApiClient {
 
   @override
   Future<User> getProfile() async {
-  Future<List<ProjectModel>> getProjects() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result =
         await _dio.fetch<Map<String, dynamic>>(_setStreamType<User>(Options(
-    final _result = await _dio
-        .fetch<List<dynamic>>(_setStreamType<List<ProjectModel>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -221,7 +218,6 @@ class _AuthApiClient implements AuthApiClient {
             .compose(
               _dio.options,
               '/users/profile',
-              '/projects',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -231,9 +227,6 @@ class _AuthApiClient implements AuthApiClient {
               baseUrl,
             ))));
     final value = User.fromJson(_result.data!);
-    var value = _result.data!
-        .map((dynamic i) => ProjectModel.fromJson(i as Map<String, dynamic>))
-        .toList();
     return value;
   }
 
@@ -275,21 +268,12 @@ class _AuthApiClient implements AuthApiClient {
     final _result = await _dio
         .fetch<Map<String, dynamic>>(_setStreamType<MessageResponse>(Options(
       method: 'POST',
-  Future<List<TaskModel>> getMyTasks() async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final Map<String, dynamic>? _data = null;
-    final _result =
-        await _dio.fetch<List<dynamic>>(_setStreamType<List<TaskModel>>(Options(
-      method: 'GET',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
               '/users/change-password',
-              '/tasks/my-tasks',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -299,9 +283,60 @@ class _AuthApiClient implements AuthApiClient {
               baseUrl,
             ))));
     final value = MessageResponse.fromJson(_result.data!);
-    var value = _result.data!
-        .map((dynamic i) => TaskModel.fromJson(i as Map<String, dynamic>))
-        .toList();
+    return value;
+  }
+
+  @override
+  Future<ProjectsResponse> getProjects() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<ProjectsResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/projects',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = ProjectsResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<TasksResponse> getMyTasks() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<TasksResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/tasks/my-tasks',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = TasksResponse.fromJson(_result.data!);
     return value;
   }
 

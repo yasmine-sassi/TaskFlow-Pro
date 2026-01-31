@@ -6,14 +6,15 @@ import 'interceptors/retry_interceptor.dart';
 import '../constants/api_endpoints.dart';
 
 class DioClient {
+  static DioClient? _instance;
   late final Dio dio;
 
-  DioClient() {
+  DioClient._internal() {
     dio = Dio(
       BaseOptions(
         baseUrl: ApiEndpoints.baseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
         headers: {'Content-Type': 'application/json'},
       ),
     );
@@ -24,5 +25,14 @@ class DioClient {
       LoggingInterceptor(),
       RetryInterceptor(dio: dio),
     ]);
+  }
+
+  factory DioClient() {
+    _instance ??= DioClient._internal();
+    return _instance!;
+  }
+
+  static void reset() {
+    _instance = null;
   }
 }
