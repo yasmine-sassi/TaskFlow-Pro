@@ -483,10 +483,12 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF0A0E27) : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF151B3D) : Colors.white,
         elevation: 0,
         title: Row(
           children: [
@@ -494,27 +496,34 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             const SizedBox(width: 8),
             Text(
               _getPageTitle(_selectedIndex),
-              style: const TextStyle(
-                color: Colors.black87,
+              style: TextStyle(
+                color: isDark ? const Color(0xFFF0F4F8) : Colors.black87,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(width: 24),
-            // Search Field
             Expanded(
               child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 decoration: InputDecoration(
                   hintText: 'Search tasks and projects...',
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                  prefixIcon:
-                      Icon(Icons.search, color: Colors.grey[400], size: 20),
+                  hintStyle: TextStyle(
+                      fontSize: 14,
+                      color:
+                          isDark ? const Color(0xFFB4C1D8) : Colors.grey[400]),
+                  prefixIcon: Icon(Icons.search,
+                      color:
+                          isDark ? const Color(0xFFB4C1D8) : Colors.grey[400],
+                      size: 20),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: Icon(Icons.clear,
-                              color: Colors.grey[400], size: 20),
+                              color: isDark
+                                  ? const Color(0xFFB4C1D8)
+                                  : Colors.grey[400],
+                              size: 20),
                           onPressed: () {
                             _searchController.clear();
                             setState(() {
@@ -525,11 +534,17 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF2D3A5F)
+                            : Colors.grey[300]!),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF2D3A5F)
+                            : Colors.grey[300]!),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
@@ -552,6 +567,61 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: isDark ? const Color(0xFF151B3D) : Colors.white,
+        selectedItemColor:
+            isDark ? const Color(0xFF8B5CF6) : Theme.of(context).primaryColor,
+        unselectedItemColor:
+            isDark ? const Color(0xFFB4C1D8) : Colors.grey[600],
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+        currentIndex: _selectedIndex == 0
+            ? 0
+            : _selectedIndex == 2
+                ? 1
+                : _selectedIndex == 1
+                    ? 2
+                    : 3,
+        onTap: (navIndex) {
+          setState(() {
+            // Order: Dashboard(0), Projects(2), Tasks(1), Profile(3)
+            switch (navIndex) {
+              case 0:
+                _selectedIndex = 0;
+                break;
+              case 1:
+                _selectedIndex = 2;
+                break;
+              case 2:
+                _selectedIndex = 1;
+                break;
+              case 3:
+                _selectedIndex = 3;
+                break;
+            }
+            _showSearchResults = false;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder_open_outlined),
+            label: 'Projects',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.checklist_rtl),
+            label: 'Tasks',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
       ),
       drawer: Drawer(
         child: Sidebar(

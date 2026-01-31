@@ -22,7 +22,8 @@ class User {
   });
 
   // Full name getter
-  String get fullName => '$firstName $lastName';
+  String get fullName =>
+      '$firstName ${lastName.isNotEmpty ? lastName : ''}'.trim();
 
   // Status getter (active if updated within last 30 days)
   String get status {
@@ -43,15 +44,19 @@ class User {
 
   // From JSON factory constructor
   factory User.fromJson(Map<String, dynamic> json) {
+    // Handle nested data structure from backend
+    final data =
+        json.containsKey('data') ? json['data'] as Map<String, dynamic> : json;
+
     return User(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
-      avatar: json['avatar'] as String?,
-      role: json['role'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      id: data['id'] as String,
+      email: data['email'] as String,
+      firstName: data['firstName'] as String? ?? '',
+      lastName: data['lastName'] as String? ?? '',
+      avatar: data['avatar'] as String?,
+      role: data['role'] as String,
+      createdAt: DateTime.parse(data['createdAt'] as String),
+      updatedAt: DateTime.parse(data['updatedAt'] as String),
     );
   }
 
@@ -94,7 +99,9 @@ class User {
 
   // From JSON list
   static List<User> fromJsonList(List<dynamic> jsonList) {
-    return jsonList.map((json) => User.fromJson(json as Map<String, dynamic>)).toList();
+    return jsonList
+        .map((json) => User.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   // To JSON list

@@ -126,13 +126,13 @@ class _AuthApiClient implements AuthApiClient {
   }
 
   @override
-  Future<Map<String, dynamic>> adminOnly() async {
+  Future<MessageResponse> adminOnly() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<Map<String, dynamic>>(
-        _setStreamType<Map<String, dynamic>>(Options(
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<MessageResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -148,7 +148,7 @@ class _AuthApiClient implements AuthApiClient {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    var value = _result.data!;
+    final value = MessageResponse.fromJson(_result.data!);
     return value;
   }
 
@@ -204,11 +204,14 @@ class _AuthApiClient implements AuthApiClient {
   }
 
   @override
+  Future<User> getProfile() async {
   Future<List<ProjectModel>> getProjects() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
+    final _result =
+        await _dio.fetch<Map<String, dynamic>>(_setStreamType<User>(Options(
     final _result = await _dio
         .fetch<List<dynamic>>(_setStreamType<List<ProjectModel>>(Options(
       method: 'GET',
@@ -217,6 +220,7 @@ class _AuthApiClient implements AuthApiClient {
     )
             .compose(
               _dio.options,
+              '/users/profile',
               '/projects',
               queryParameters: queryParameters,
               data: _data,
@@ -226,6 +230,7 @@ class _AuthApiClient implements AuthApiClient {
               _dio.options.baseUrl,
               baseUrl,
             ))));
+    final value = User.fromJson(_result.data!);
     var value = _result.data!
         .map((dynamic i) => ProjectModel.fromJson(i as Map<String, dynamic>))
         .toList();
@@ -233,6 +238,43 @@ class _AuthApiClient implements AuthApiClient {
   }
 
   @override
+  Future<User> updateProfile(UpdateProfileDto dto) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(dto.toJson());
+    final _result =
+        await _dio.fetch<Map<String, dynamic>>(_setStreamType<User>(Options(
+      method: 'PATCH',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/users/profile',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = User.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<MessageResponse> changePassword(ChangePasswordDto dto) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(dto.toJson());
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<MessageResponse>(Options(
+      method: 'POST',
   Future<List<TaskModel>> getMyTasks() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -246,6 +288,7 @@ class _AuthApiClient implements AuthApiClient {
     )
             .compose(
               _dio.options,
+              '/users/change-password',
               '/tasks/my-tasks',
               queryParameters: queryParameters,
               data: _data,
@@ -255,6 +298,7 @@ class _AuthApiClient implements AuthApiClient {
               _dio.options.baseUrl,
               baseUrl,
             ))));
+    final value = MessageResponse.fromJson(_result.data!);
     var value = _result.data!
         .map((dynamic i) => TaskModel.fromJson(i as Map<String, dynamic>))
         .toList();

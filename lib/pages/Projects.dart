@@ -27,6 +27,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final projectsAsync = ref.watch(projectsProvider);
 
     return projectsAsync.when(
@@ -40,12 +41,12 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Projects',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: isDark ? const Color(0xFFF0F4F8) : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -53,13 +54,46 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                     '${projects.length} project${projects.length != 1 ? 's' : ''}',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color:
+                          isDark ? const Color(0xFFB4C1D8) : Colors.grey[600],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
 
+              // Search Bar
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search projects...',
+                  prefixIcon: Icon(Icons.search,
+                      color:
+                          isDark ? const Color(0xFFB4C1D8) : Colors.grey[400]),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color:
+                          isDark ? const Color(0xFF2D3A5F) : Colors.grey[300]!,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color:
+                          isDark ? const Color(0xFF2D3A5F) : Colors.grey[300]!,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF8B5CF6), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: isDark ? const Color(0xFF1E2749) : Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
               // Create New Project Button
               SizedBox(
                 width: double.infinity,
@@ -96,12 +130,18 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                           color: Colors.grey[300],
                         ),
                         const SizedBox(height: 16),
+                        Text(
+                          searchQuery.isNotEmpty
+                              ? 'No matching projects'
+                              : 'No projects yet',
                         const Text(
                           'No projects yet',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black54,
+                            color: isDark
+                                ? const Color(0xFFF0F4F8)
+                                : Colors.black54,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -109,7 +149,9 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                           'Get started by creating your first project',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[500],
+                            color: isDark
+                                ? const Color(0xFFB4C1D8)
+                                : Colors.grey[500],
                           ),
                         ),
                       ],
@@ -211,6 +253,7 @@ class _ProjectCardState extends State<ProjectCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final projectColor = _hexToColor(widget.project.color);
 
     return MouseRegion(
@@ -219,28 +262,33 @@ class _ProjectCardState extends State<ProjectCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF151B3D) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color:
-                _isHovered ? Colors.blue.withOpacity(0.2) : Colors.grey[200]!,
+            color: _isHovered
+                ? const Color(0xFF8B5CF6).withOpacity(0.35)
+                : (isDark ? const Color(0xFF2D3A5F) : Colors.grey[200]!),
             width: 1,
           ),
           boxShadow: _isHovered
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: isDark
+                        ? Colors.black.withOpacity(0.35)
+                        : Colors.black.withOpacity(0.1),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
                 ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              : isDark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -277,10 +325,12 @@ class _ProjectCardState extends State<ProjectCard> {
                         Expanded(
                           child: Text(
                             widget.project.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: isDark
+                                  ? const Color(0xFFF0F4F8)
+                                  : Colors.black87,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -291,7 +341,9 @@ class _ProjectCardState extends State<ProjectCard> {
                           '${widget.project.members?.length ?? 0} member${(widget.project.members?.length ?? 0) != 1 ? 's' : ''}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: isDark
+                                ? const Color(0xFFB4C1D8)
+                                : Colors.grey[600],
                           ),
                         ),
                       ],
@@ -305,7 +357,9 @@ class _ProjectCardState extends State<ProjectCard> {
                         widget.project.description!,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[600],
+                          color: isDark
+                              ? const Color(0xFFB4C1D8)
+                              : Colors.grey[600],
                           height: 1.4,
                         ),
                         maxLines: 2,
@@ -351,7 +405,9 @@ class _ProjectCardState extends State<ProjectCard> {
                           '+${(widget.project.members?.length ?? 0) - 3}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: isDark
+                                ? const Color(0xFFB4C1D8)
+                                : Colors.grey[600],
                             fontWeight: FontWeight.w500,
                           ),
                         ),
