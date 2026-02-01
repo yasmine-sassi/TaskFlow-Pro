@@ -814,52 +814,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ],
           ),
-
-          const SizedBox(height: 24),
-
-          const Divider(),
-
-          const SizedBox(height: 24),
-
-          // Two-Factor Authentication
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Two-Factor Authentication',
-                      style: AppTheme.label.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppTheme.darkForeground
-                            : AppTheme.foreground,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Add an extra layer of security to your account',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.mutedForeground,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              OutlinedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('2FA setup not implemented'),
-                    ),
-                  );
-                },
-                child: const Text('Enable 2FA'),
-              ),
-            ],
-          ),
         ],
       ),
     );

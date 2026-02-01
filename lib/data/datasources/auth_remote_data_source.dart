@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import '../../core/constants/api_endpoints.dart';
-import '../models/user_model.dart';
+import '../models/user.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<UserModel> login({required String email, required String password});
+  Future<User> login({required String email, required String password});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -11,7 +11,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<UserModel> login({
+  Future<User> login({
     required String email,
     required String password,
   }) async {
@@ -19,6 +19,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       ApiEndpoints.login,
       data: {'email': email, 'password': password},
     );
-    return UserModel.fromJson(response.data as Map<String, dynamic>);
+    return User.fromJson(response.data as Map<String, dynamic>);
   }
 }

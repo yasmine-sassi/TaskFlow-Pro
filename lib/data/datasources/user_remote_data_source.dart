@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import '../../core/constants/api_endpoints.dart';
-import '../models/user_model.dart';
+import '../models/user.dart';
 
 abstract class UserRemoteDataSource {
-  Future<UserModel> getCurrentUser();
+  Future<User> getCurrentUser();
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -12,7 +12,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   UserRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<UserModel> getCurrentUser() async {
+  Future<User> getCurrentUser() async {
     final response = await dio.get('${ApiEndpoints.baseUrl}/auth/me');
 
     print('User Remote Data Source - Response: ${response.data}');
@@ -42,19 +42,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 
       print('User Remote Data Source - Extracted User Data: $userData');
 
-      // Map backend field names to UserModel field names
-      // Backend uses: userId, email
-      // UserModel expects: id, email, name
-      final mappedData = {
-        'id': userData['userId'] ?? userData['id'] ?? '',
-        'email': userData['email'] ?? '',
-        'name':
-            userData['name'] ?? userData['email']?.split('@').first ?? 'User',
-      };
-
-      print('User Remote Data Source - Mapped Data: $mappedData');
-
-      return UserModel.fromJson(mappedData);
+      return User.fromJson(userData);
     }
 
     throw Exception('Invalid response format: ${response.data.runtimeType}');
