@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/user.dart';
 import '../data/models/project_model.dart';
 import '../data/models/task_model.dart';
@@ -9,7 +7,7 @@ import '../core/network/api_client.dart';
 import 'main_layout.dart';
 import 'tasks.dart';
 import 'Projects.dart';
-import 'profile.dart';
+import 'settings_page.dart';
 
 extension HexColor on String {
   Color toColor() {
@@ -128,7 +126,7 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       tasksContent: const TasksPage(),
       projectsContent: const ProjectsPage(),
-      profileContent: const ProfilePage(),
+      profileContent: const SettingsPage(),
     );
   }
 
