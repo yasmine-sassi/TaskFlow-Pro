@@ -133,29 +133,56 @@ class Sidebar extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: GestureDetector(
               onTap: () async {
-                // Clear all providers to reset state
-                ref.invalidate(tasksProvider);
-                ref.invalidate(tasksRepositoryProvider);
-                ref.invalidate(projectsProvider);
-                ref.invalidate(projectsRepositoryProvider);
-                ref.invalidate(userProvider);
-                ref.invalidate(dioClientProvider);
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text(
+                      'Are you sure you want to logout? You will need to login again to access your account.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          Navigator.pop(dialogContext);
 
-                // Clear cached authentication data
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('access_token');
-                await prefs.remove('user_data');
+                          // Clear all providers to reset state
+                          ref.invalidate(tasksProvider);
+                          ref.invalidate(tasksRepositoryProvider);
+                          ref.invalidate(projectsProvider);
+                          ref.invalidate(projectsRepositoryProvider);
+                          ref.invalidate(userProvider);
+                          ref.invalidate(dioClientProvider);
 
-                // Reset the API client factory
-                AuthApiClientFactory.reset();
+                          // Clear cached authentication data
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('access_token');
+                          await prefs.remove('user_data');
 
-                // Navigate to login page
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (route) => false,
-                  );
-                }
+                          // Reset the API client factory
+                          AuthApiClientFactory.reset();
+
+                          // Navigate to login page
+                          if (context.mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                              (route) => false,
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+                );
               },
               child: Container(
                 width: double.infinity,

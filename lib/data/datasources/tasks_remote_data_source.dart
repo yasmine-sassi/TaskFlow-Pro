@@ -14,7 +14,9 @@ class TasksRemoteDataSourceImpl implements TasksRemoteDataSource {
   @override
   Future<List<TaskModel>> getMyTasks() async {
     try {
-      final response = await dio.get('${ApiEndpoints.tasks}/my-tasks');
+      final response = await dio.get(
+        '${ApiEndpoints.baseUrl}${ApiEndpoints.tasks}/my-tasks',
+      );
       // Backend wraps response in { statusCode, message, data }
       final responseData = response.data;
       final List<dynamic> data = responseData['data'] as List<dynamic>;
@@ -29,7 +31,9 @@ class TasksRemoteDataSourceImpl implements TasksRemoteDataSource {
   @override
   Future<TaskModel> getTaskById(String id) async {
     try {
-      final response = await dio.get('${ApiEndpoints.tasks}/$id');
+      final response = await dio.get(
+        '${ApiEndpoints.baseUrl}${ApiEndpoints.tasks}/$id',
+      );
       // Backend wraps response in { statusCode, message, data }
       final responseData = response.data;
       return TaskModel.fromJson(responseData['data'] as Map<String, dynamic>);

@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../core/network/api_client.dart';
+import '../presentation/providers/user_provider.dart';
 import 'admindashboard.dart';
 import 'dashboard.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -102,6 +104,9 @@ class _LoginPageState extends State<LoginPage> {
           baseUrl: baseUrl,
           accessToken: accessToken,
         );
+
+        // 3.5. Refresh user provider from cached data
+        await ref.read(userProvider.notifier).loadUser();
 
         // 4. Navigate to main app dashboard
         if (mounted) {

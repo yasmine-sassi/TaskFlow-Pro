@@ -14,7 +14,9 @@ class ProjectsRemoteDataSourceImpl implements ProjectsRemoteDataSource {
   @override
   Future<List<ProjectModel>> getAllProjects() async {
     try {
-      final response = await dio.get(ApiEndpoints.projects);
+      final response = await dio.get(
+        '${ApiEndpoints.baseUrl}${ApiEndpoints.projects}',
+      );
       print('Projects response: ${response.data}');
 
       // Backend wraps response in { statusCode, message, data }
@@ -42,7 +44,9 @@ class ProjectsRemoteDataSourceImpl implements ProjectsRemoteDataSource {
   @override
   Future<ProjectModel> getProjectById(String id) async {
     try {
-      final response = await dio.get('${ApiEndpoints.projects}/$id');
+      final response = await dio.get(
+        '${ApiEndpoints.baseUrl}${ApiEndpoints.projects}/$id',
+      );
       // Backend wraps response in { statusCode, message, data }
       final responseData = response.data;
       return ProjectModel.fromJson(

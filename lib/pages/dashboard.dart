@@ -337,6 +337,19 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               )
+            else if (userProjects.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(
+                  child: Text(
+                    'No projects available',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
             else
               ...recentTasks.map((task) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -381,6 +394,19 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Center(
                   child: Text(
                     'No high priority tasks pending',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+            else if (userProjects.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(
+                  child: Text(
+                    'No projects available',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
@@ -496,6 +522,8 @@ class _ProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final projectColor = project.color?.toColor() ?? Colors.grey;
+
     return InkWell(
       onTap: () {
         // Navigate to projects page
@@ -513,12 +541,12 @@ class _ProjectCard extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: project.color!.toColor().withOpacity(0.15),
+                color: projectColor.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.folder_open,
-                color: project.color!.toColor(),
+                color: projectColor,
                 size: 16,
               ),
             ),
@@ -608,6 +636,9 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final projectColor = project.color?.toColor() ?? Colors.grey;
+    final dueDate = task.dueDate;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
@@ -660,7 +691,7 @@ class TaskCard extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: project.color!.toColor(),
+                    color: projectColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -691,20 +722,22 @@ class TaskCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Spacer(),
-                Icon(
-                  Icons.calendar_today,
-                  size: 12,
-                  color: Colors.grey[500],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  DateFormat('MMM dd').format(task.dueDate!),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                if (dueDate != null) ...[
+                  const Spacer(),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 12,
+                    color: Colors.grey[500],
                   ),
-                ),
+                  const SizedBox(width: 4),
+                  Text(
+                    DateFormat('MMM dd').format(dueDate),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
