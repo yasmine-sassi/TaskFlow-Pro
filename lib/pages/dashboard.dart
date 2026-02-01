@@ -6,7 +6,7 @@ import '../data/models/task_model.dart';
 import '../core/network/api_client.dart';
 import 'main_layout.dart';
 import 'tasks.dart';
-import 'Projects.dart';
+import 'projects.dart';
 import 'settings_page.dart';
 
 extension HexColor on String {
