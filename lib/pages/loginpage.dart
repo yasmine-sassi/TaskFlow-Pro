@@ -7,6 +7,7 @@ import '../core/network/api_client.dart';
 import '../presentation/providers/user_provider.dart';
 import 'admindashboard.dart';
 import 'dashboard.dart';
+import 'register_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -365,6 +366,48 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                             ],
                                           )
                                         : const Text('Sign in'),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Footer
+                                Center(
+                                  child: Wrap(
+                                    alignment: WrapAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Don't have an account?",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Colors.grey[600],
+                                            ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const RegisterPage(),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          'Register',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .primaryColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
