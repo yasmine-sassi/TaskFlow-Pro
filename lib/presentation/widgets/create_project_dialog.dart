@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/models/user.dart';
+import '../../core/network/api_client.dart';
+import '../../core/constants/api_endpoints.dart';
+import '../../presentation/providers/projects_provider.dart';
+import '../../presentation/providers/user_provider.dart' hide User;
 
-class CreateProjectDialog extends StatefulWidget {
+class CreateProjectDialog extends ConsumerStatefulWidget {
   const CreateProjectDialog({super.key});
 
   @override
-  State<CreateProjectDialog> createState() => _CreateProjectDialogState();
+  ConsumerState<CreateProjectDialog> createState() =>
+      _CreateProjectDialogState();
 }
 
-class _CreateProjectDialogState extends State<CreateProjectDialog> {
+class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   String _selectedColor = '#8B5CF6';
   List<String> _selectedOwners = [];
   List<String> _selectedEditors = [];
   List<String> _selectedViewers = [];
+  List<User> _allUsers = [];
+  bool _isLoadingUsers = true;
+  bool _isCreatingProject = false;
 
   final List<Map<String, String>> _colorOptions = [
     {'name': 'Blue', 'value': '#3B82F6'},
@@ -31,6 +41,138 @@ class _CreateProjectDialogState extends State<CreateProjectDialog> {
     super.initState();
     _nameController = TextEditingController();
     _descriptionController = TextEditingController();
+    _fetchUsers();
+  }
+
+  Future<void> _fetchUsers() async {
+    try {
+      final apiClient = AuthApiClientFactory.dio;
+      if (apiClient == null) {
+        print('Error: API client not initialized');
+        setState(() {
+          _isLoadingUsers = false;
+        });
+        return;
+      }
+
+      final response = await apiClient.get('/users');
+      print('Users response: ${response.data}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        List<dynamic> usersList;
+
+        // Check if response.data is already a List or wrapped in an object
+        if (response.data is List) {
+          usersList = response.data as List<dynamic>;
+        } else if (response.data is Map<String, dynamic>) {
+          // Backend might wrap the response, check common keys
+          final dataMap = response.data as Map<String, dynamic>;
+          if (dataMap.containsKey('data')) {
+            usersList = dataMap['data'] as List<dynamic>;
+          } else if (dataMap.containsKey('users')) {
+            usersList = dataMap['users'] as List<dynamic>;
+          } else {
+            // If no wrapper found, the map itself might be the issue
+            print('Unexpected response structure: $dataMap');
+            setState(() {
+              _isLoadingUsers = false;
+            });
+            return;
+          }
+        } else {
+          print('Unexpected response type: ${response.data.runtimeType}');
+          setState(() {
+            _isLoadingUsers = false;
+          });
+          return;
+        }
+
+        final users = User.fromJsonList(usersList);
+        setState(() {
+          _allUsers = users;
+          _isLoadingUsers = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching users: $e');
+      setState(() {
+        _isLoadingUsers = false;
+      });
+    }
+  }
+
+  Future<void> _createProject(BuildContext context) async {
+    if (_nameController.text.isEmpty) return;
+
+    setState(() {
+      _isCreatingProject = true;
+    });
+
+    try {
+      final apiClient = AuthApiClientFactory.dio;
+      if (apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+
+      final user = ref.read(userProvider);
+      if (user?.id == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Prepare the payload according to CreateProjectDto
+      final payload = {
+        'name': _nameController.text,
+        'description': _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text,
+        'color': _selectedColor,
+        'ownerId': user!.id,
+        'editors': _selectedEditors,
+        'viewers': _selectedViewers,
+      };
+
+      print('Creating project with payload: $payload');
+
+      final response = await apiClient.post(
+        '${ApiEndpoints.baseUrl}${ApiEndpoints.projects}',
+        data: payload,
+      );
+
+      print('Project created successfully: ${response.data}');
+
+      // Refresh the projects list
+      ref.invalidate(projectsProvider);
+
+      // Show success message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Project "${_nameController.text}" created successfully!'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      print('Error creating project: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create project: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingProject = false;
+        });
+      }
+    }
   }
 
   @override
@@ -258,21 +400,51 @@ class _CreateProjectDialogState extends State<CreateProjectDialog> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      hint: Text(
-                        'Select owners...',
-                        style: TextStyle(
-                          color: isDark
-                              ? const Color(0xFFB4C1D8)
-                              : Colors.grey[600],
-                        ),
-                      ),
-                      value: null,
-                      underline: const SizedBox(),
-                      items: [],
-                      onChanged: (value) {},
-                    ),
+                    child: _isLoadingUsers
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : DropdownButton<String>(
+                            isExpanded: true,
+                            hint: Text(
+                              _selectedOwners.isEmpty
+                                  ? 'Select owners...'
+                                  : '${_selectedOwners.length} owner(s) selected',
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFFB4C1D8)
+                                    : Colors.grey[600],
+                              ),
+                            ),
+                            value: null,
+                            underline: const SizedBox(),
+                            items: _allUsers.map((user) {
+                              return DropdownMenuItem<String>(
+                                value: user.id,
+                                child: Text(
+                                  user.fullName,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? const Color(0xFFF0F4F8)
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null &&
+                                  !_selectedOwners.contains(value)) {
+                                setState(() {
+                                  _selectedOwners.add(value);
+                                });
+                              }
+                            },
+                          ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -296,21 +468,51 @@ class _CreateProjectDialogState extends State<CreateProjectDialog> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      hint: Text(
-                        'Select editors...',
-                        style: TextStyle(
-                          color: isDark
-                              ? const Color(0xFFB4C1D8)
-                              : Colors.grey[600],
-                        ),
-                      ),
-                      value: null,
-                      underline: const SizedBox(),
-                      items: [],
-                      onChanged: (value) {},
-                    ),
+                    child: _isLoadingUsers
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : DropdownButton<String>(
+                            isExpanded: true,
+                            hint: Text(
+                              _selectedEditors.isEmpty
+                                  ? 'Select editors...'
+                                  : '${_selectedEditors.length} editor(s) selected',
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFFB4C1D8)
+                                    : Colors.grey[600],
+                              ),
+                            ),
+                            value: null,
+                            underline: const SizedBox(),
+                            items: _allUsers.map((user) {
+                              return DropdownMenuItem<String>(
+                                value: user.id,
+                                child: Text(
+                                  user.fullName,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? const Color(0xFFF0F4F8)
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null &&
+                                  !_selectedEditors.contains(value)) {
+                                setState(() {
+                                  _selectedEditors.add(value);
+                                });
+                              }
+                            },
+                          ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -334,21 +536,51 @@ class _CreateProjectDialogState extends State<CreateProjectDialog> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      hint: Text(
-                        'Select viewers...',
-                        style: TextStyle(
-                          color: isDark
-                              ? const Color(0xFFB4C1D8)
-                              : Colors.grey[600],
-                        ),
-                      ),
-                      value: null,
-                      underline: const SizedBox(),
-                      items: [],
-                      onChanged: (value) {},
-                    ),
+                    child: _isLoadingUsers
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : DropdownButton<String>(
+                            isExpanded: true,
+                            hint: Text(
+                              _selectedViewers.isEmpty
+                                  ? 'Select viewers...'
+                                  : '${_selectedViewers.length} viewer(s) selected',
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFFB4C1D8)
+                                    : Colors.grey[600],
+                              ),
+                            ),
+                            value: null,
+                            underline: const SizedBox(),
+                            items: _allUsers.map((user) {
+                              return DropdownMenuItem<String>(
+                                value: user.id,
+                                child: Text(
+                                  user.fullName,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? const Color(0xFFF0F4F8)
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null &&
+                                  !_selectedViewers.contains(value)) {
+                                setState(() {
+                                  _selectedViewers.add(value);
+                                });
+                              }
+                            },
+                          ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -371,34 +603,37 @@ class _CreateProjectDialogState extends State<CreateProjectDialog> {
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                      onPressed: _nameController.text.isEmpty
-                          ? null
-                          : () {
-                              // TODO: Implement project creation
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Project created!'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                              Navigator.pop(context);
-                            },
+                      onPressed:
+                          _nameController.text.isEmpty || _isCreatingProject
+                              ? null
+                              : () => _createProject(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _nameController.text.isEmpty
-                            ? Colors.grey
-                            : const Color(0xFF8B5CF6),
+                        backgroundColor:
+                            _nameController.text.isEmpty || _isCreatingProject
+                                ? Colors.grey
+                                : const Color(0xFF8B5CF6),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 12,
                         ),
                       ),
-                      child: const Text(
-                        'Create Project',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: _isCreatingProject
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              'Create Project',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ],
                 ),
