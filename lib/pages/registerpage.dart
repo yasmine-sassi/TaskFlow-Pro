@@ -1,54 +1,80 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import '../core/network/api_client.dart';
-import '../presentation/providers/user_provider.dart';
-import 'admindashboard.dart';
-import 'dashboard.dart';
-import 'registerpage.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _lastNameFocusNode = FocusNode();
+  final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
 
   bool _showPassword = false;
+  bool _showConfirmPassword = false;
   bool _isLoading = false;
+
+  String? _firstNameError;
+  String? _lastNameError;
   String? _emailError;
   String? _passwordError;
+  String? _confirmPasswordError;
   String? _errorMessage;
 
-  // Your API base URL - Use 10.0.2.2 for Android emulator
   static const String baseUrl = 'http://10.0.2.2:3000';
 
   @override
   void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _lastNameFocusNode.dispose();
+    _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
   bool _validate() {
     setState(() {
+      _firstNameError = null;
+      _lastNameError = null;
       _emailError = null;
       _passwordError = null;
+      _confirmPasswordError = null;
       _errorMessage = null;
     });
 
     bool isValid = true;
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (firstName.isEmpty) {
+      setState(() => _firstNameError = 'First name is required');
+      isValid = false;
+    }
+
+    if (lastName.isEmpty) {
+      setState(() => _lastNameError = 'Last name is required');
+      isValid = false;
+    }
 
     if (email.isEmpty) {
       setState(() => _emailError = 'Email is required');
@@ -58,11 +84,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       isValid = false;
     }
 
+    final passwordRegex = RegExp(
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+    );
+
     if (password.isEmpty) {
       setState(() => _passwordError = 'Password is required');
       isValid = false;
-    } else if (password.length < 6) {
-      setState(() => _passwordError = 'Password must be at least 6 characters');
+    } else if (!passwordRegex.hasMatch(password)) {
+      setState(
+        () => _passwordError =
+            'Password must be 8+ chars with upper, lower, number, special',
+      );
+      isValid = false;
+    }
+
+    if (confirmPassword.isEmpty) {
+      setState(() => _confirmPasswordError = 'Confirm your password');
+      isValid = false;
+    } else if (confirmPassword != password) {
+      setState(() => _confirmPasswordError = 'Passwords do not match');
       isValid = false;
     }
 
@@ -75,60 +116,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Login with http.post
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
+        Uri.parse('$baseUrl/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
+          'firstName': _firstNameController.text.trim(),
+          'lastName': _lastNameController.text.trim(),
           'email': _emailController.text.trim(),
           'password': _passwordController.text,
         }),
       );
-      print(_emailController.text.trim());
-      print(_passwordController.text);
-
-      print(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        final accessToken = data['accessToken'];
-        final userData = data['user'];
-
-        // 2. Save token to SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('access_token', accessToken);
-        await prefs.setString('user_data', json.encode(userData));
-        print("saved shared");
-
-        // 3. Create authenticated API client
-        AuthApiClientFactory.createAuthenticated(
-          baseUrl: baseUrl,
-          accessToken: accessToken,
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created. Please sign in.')),
         );
-
-        // 3.5. Refresh user provider from cached data
-        await ref.read(userProvider.notifier).loadUser();
-
-        // 4. Navigate to main app dashboard
-        if (mounted) {
-          if (userData['role'] == 'USER') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const DashboardPage()),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminDashboard()),
-            );
+        Navigator.pop(context);
+      } else {
+        String? message;
+        try {
+          final body = json.decode(response.body);
+          if (body is Map && body['message'] is String) {
+            message = body['message'] as String;
+          } else if (body is Map && body['message'] is List) {
+            message = (body['message'] as List).join('\n');
           }
-        }
+        } catch (_) {}
+        setState(() {
+          _errorMessage = message ?? 'Registration failed. Please try again.';
+        });
       }
     } catch (e) {
       setState(() {
         _errorMessage = 'Network error. Please check your connection.';
       });
-      print('Login error: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -149,7 +171,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -177,8 +198,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ],
                   ),
                   const SizedBox(height: 32),
-
-                  // Login Card
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -189,9 +208,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Header
                           Text(
-                            'Welcome back',
+                            'Create your account',
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge
@@ -202,7 +220,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Sign in to your account to continue',
+                            'Get started with TaskFlow Pro',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -212,8 +230,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
-
-                          // Error Message
                           if (_errorMessage != null)
                             Container(
                               padding: const EdgeInsets.all(12),
@@ -240,14 +256,100 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 ],
                               ),
                             ),
-
-                          // Form
                           Form(
                             key: _formKey,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Email Field
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'First Name',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          TextField(
+                                            controller: _firstNameController,
+                                            textInputAction:
+                                                TextInputAction.next,
+                                            enabled: !_isLoading,
+                                            onSubmitted: (_) {
+                                              _lastNameFocusNode.requestFocus();
+                                            },
+                                            decoration: InputDecoration(
+                                              hintText: 'John',
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              errorText: _firstNameError,
+                                              errorBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: const BorderSide(
+                                                    color: Colors.red),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Last Name',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          TextField(
+                                            controller: _lastNameController,
+                                            focusNode: _lastNameFocusNode,
+                                            textInputAction:
+                                                TextInputAction.next,
+                                            enabled: !_isLoading,
+                                            onSubmitted: (_) {
+                                              _emailFocusNode.requestFocus();
+                                            },
+                                            decoration: InputDecoration(
+                                              hintText: 'Doe',
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              errorText: _lastNameError,
+                                              errorBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: const BorderSide(
+                                                    color: Colors.red),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
                                 Text(
                                   'Email',
                                   style: Theme.of(context)
@@ -260,6 +362,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: _emailController,
+                                  focusNode: _emailFocusNode,
                                   keyboardType: TextInputType.emailAddress,
                                   textInputAction: TextInputAction.next,
                                   enabled: !_isLoading,
@@ -280,8 +383,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-
-                                // Password Field
                                 Text(
                                   'Password',
                                   style: Theme.of(context)
@@ -296,12 +397,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   controller: _passwordController,
                                   focusNode: _passwordFocusNode,
                                   obscureText: !_showPassword,
-                                  textInputAction: TextInputAction.done,
+                                  textInputAction: TextInputAction.next,
                                   enabled: !_isLoading,
                                   onSubmitted: (_) {
-                                    if (!_isLoading) {
-                                      _handleSubmit();
-                                    }
+                                    _confirmPasswordFocusNode.requestFocus();
                                   },
                                   decoration: InputDecoration(
                                     hintText: '••••••••',
@@ -329,9 +428,56 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     ),
                                   ),
                                 ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Confirm Password',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: _confirmPasswordController,
+                                  focusNode: _confirmPasswordFocusNode,
+                                  obscureText: !_showConfirmPassword,
+                                  textInputAction: TextInputAction.done,
+                                  enabled: !_isLoading,
+                                  onSubmitted: (_) {
+                                    if (!_isLoading) {
+                                      _handleSubmit();
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: '••••••••',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    errorText: _confirmPasswordError,
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide:
+                                          const BorderSide(color: Colors.red),
+                                    ),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _showConfirmPassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: Colors.grey[600],
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _showConfirmPassword =
+                                              !_showConfirmPassword;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
                                 const SizedBox(height: 24),
-
-                                // Submit Button
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
@@ -362,10 +508,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                                 ),
                                               ),
                                               SizedBox(width: 12),
-                                              Text('Signing in...'),
+                                              Text('Registering...'),
                                             ],
                                           )
-                                        : const Text('Sign in'),
+                                        : const Text('Register'),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -373,7 +519,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Don\'t have an account? ',
+                                      'Already have an account? ',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
@@ -382,16 +528,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                           ),
                                     ),
                                     TextButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const RegisterPage(),
-                                          ),
-                                        );
-                                      },
-                                      child: const Text('Register'),
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Login'),
                                     ),
                                   ],
                                 ),
@@ -411,154 +549,3 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
-
-// ==================== Helper: Token Manager ====================
-
-class TokenManager {
-  static const String _tokenKey = 'access_token';
-  static const String _userDataKey = 'user_data';
-
-  /// Save access token to SharedPreferences
-  static Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
-  }
-
-  /// Get access token from SharedPreferences
-  static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
-  }
-
-  /// Save user data to SharedPreferences
-  static Future<void> saveUserData(Map<String, dynamic> userData) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userDataKey, json.encode(userData));
-  }
-
-  /// Get user data from SharedPreferences
-  static Future<Map<String, dynamic>?> getUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userDataString = prefs.getString(_userDataKey);
-    if (userDataString != null) {
-      return json.decode(userDataString);
-    }
-    return null;
-  }
-
-  /// Clear all stored data (logout)
-  static Future<void> clearAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userDataKey);
-  }
-
-  /// Check if user is logged in
-  static Future<bool> isLoggedIn() async {
-    final token = await getToken();
-    return token != null && token.isNotEmpty;
-  }
-}
-
-// ==================== Usage Example ====================
-
-/*
-
-// In your main.dart or app initialization:
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Check if user is already logged in
-  final isLoggedIn = await TokenManager.isLoggedIn();
-  
-  runApp(MyApp(isLoggedIn: isLoggedIn));
-}
-
-class MyApp extends StatelessWidget {
-  final bool isLoggedIn;
-  
-  const MyApp({Key? key, required this.isLoggedIn}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      initialRoute: isLoggedIn ? '/dashboard' : '/login',
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/dashboard': (context) => const DashboardPage(),
-      },
-    );
-  }
-}
-
-// In your dashboard or any authenticated page:
-class DashboardPage extends StatefulWidget {
-  const DashboardPage({Key? key}) : super(key: key);
-
-  @override
-  State<DashboardPage> createState() => _DashboardPageState();
-}
-
-class _DashboardPageState extends State<DashboardPage> {
-  late AuthApiClient _apiClient;
-  User? _currentUser;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeApiClient();
-  }
-
-  Future<void> _initializeApiClient() async {
-    final token = await TokenManager.getToken();
-    if (token != null) {
-      _apiClient = AuthApiClientFactory.createAuthenticated(
-        baseUrl: 'http://10.0.2.2:3000',
-        accessToken: token,
-      );
-      
-      // Fetch current user
-      try {
-        final user = await _apiClient.getMe();
-        setState(() => _currentUser = user);
-      } catch (e) {
-        print('Failed to fetch user: $e');
-      }
-    }
-  }
-
-  Future<void> _logout() async {
-    try {
-      await _apiClient.logout();
-    } catch (e) {
-      print('Logout API call failed: $e');
-    } finally {
-      await TokenManager.clearAll();
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      body: Center(
-        child: _currentUser != null
-            ? Text('Welcome, ${_currentUser!.fullName}!')
-            : CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-*/
